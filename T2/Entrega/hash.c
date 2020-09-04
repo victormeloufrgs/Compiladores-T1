@@ -7,7 +7,7 @@ Matrícula:  00285640
 #include <string.h>
 #include <stdlib.h>
 
-TOKEN *hash_table[HASH_SIZE];
+HASH_NODE *hash_table[HASH_SIZE];
 
 void hashInit(void) 
 {
@@ -27,53 +27,47 @@ int hashAddress(char *value)
     return sum % HASH_SIZE;
 }
 
-TOKEN *hashFind(char *value) 
+HASH_NODE *hashFind(char *text) 
 {
-    int address = hashAddress(value);
-    TOKEN* token = hash_table[address];
-
-    if(strcmp(token->value, value) == 0) {
-        return token;
-    }
-
-    while(token->next != NULL) {
-        token = token->next;
-
-        if(strcmp(token->value, value) == 0) {
-            return token;
-        }
-    }
-
+    HASH_NODE *node;
+    int address = hashAddress(text);
+    for (node=hash_table[address]; node; node = node->next)
+        if (strcmp(node->text,text)==0)
+            return node;
     return 0;
 }
 
-TOKEN *hashInsert(int id, char *value) 
+HASH_NODE *hashInsert(char *text, int type) 
 {
-    int symbol = getSymbolFromToken(id);
-    int address = hashAddress(value);
-    TOKEN *token = (TOKEN*) calloc(1, sizeof(TOKEN));
-    token->id = symbol;
-    token->value = (char*) calloc(strlen(value)+1, sizeof(char));
-    strcpy(token->value, value);
-    token->next = hash_table[address];
-    hash_table[address] = token;
 
-    return token;
+    HASH_NODE *newnode;
+    int address = hashAddress(text);
+
+    if ((newnode = hashFind(text)) != 0)
+        return newnode;
+
+    newnode = (HASH_NODE*) calloc(1, sizeof(HASH_NODE));
+    newnode->type = type;
+    newnode->text = (char*) calloc(strlen(text)+1, sizeof(char));
+    strcpy(newnode->text, text);
+    newnode->next = hash_table[address];
+    hash_table[address] = newnode;
+    return newnode;
 }
 
 void hashPrint() {
     int i = 0;
 
-    printf("\nTOKENS:\n");
+    printf("\nSYMBOLS TABLE:\n");
     printf("-------TYPE--------|---VALUE--------");
     for(i=0; i < HASH_SIZE; i++) {
-        TOKEN* token = hash_table[i];
-        if(token == NULL) continue;
+        HASH_NODE* node = hash_table[i];
+        if(node == NULL) continue;
 
         do {
-            printf("\n%s | %s",getSymbolName(token->id), token->value);
-            token = token->next;
-        } while(token != NULL);
+            printf("\n%s | %s",getSymbolName(node->type), node->text);
+            node = node->next;
+        } while(node != NULL);
 
     }
 

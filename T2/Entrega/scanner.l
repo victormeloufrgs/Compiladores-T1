@@ -4,8 +4,8 @@
     Matrícula:  00285640
     */
     
-    #include "y.tab.h"
     #include "hash.h"
+    #include "y.tab.h"
     #include "symbols.h"
 
     int running = 1;
@@ -41,14 +41,14 @@
 "=="                            return OPERATOR_EQ;  
 "!="                            return OPERATOR_DIF;
 
-"TRUE"                          hashInsert(LIT_TRUE, yytext); return LIT_TRUE;
-"FALSE"                         hashInsert(LIT_FALSE, yytext); return LIT_FALSE;
-[0-9|A-F]+                      hashInsert(LIT_INTEGER, yytext); return LIT_INTEGER;
-[0-9|A-F]*\.[0-9|A-F]+         hashInsert(LIT_FLOAT, yytext); return LIT_FLOAT;
-'[!-~]'                         hashInsert(LIT_CHAR, yytext); return LIT_CHAR;
-\"[!|#-~|\\\"|\\n ]+\"           hashInsert(LIT_STRING, yytext); return LIT_STRING;
+"TRUE"                           { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_TRUE); return LIT_TRUE; }
+"FALSE"                          { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_FALSE); return LIT_FALSE; }
+[0-9|A-F]+                       { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_INTEGER); return LIT_INTEGER; }
+[0-9|A-F]*\.[0-9|A-F]+           { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_FLOAT); return LIT_FLOAT; }
+'[!-~]'                          { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_CHAR); return LIT_CHAR; }
+\"[!|#-~|\\\"|\\n ]+\"           { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_STRING); return LIT_STRING; }
 
-[@|_|A-z][0-9|@|_|A-z]*         hashInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER;  
+[@|_|A-Z|a-z][0-9|@|_|A-Z|a-z]*  { yylval.symbol = hashInsert(yytext, SYMBOL_IDENTIFIER); return TK_IDENTIFIER; }
 
 
 "//".*
@@ -62,9 +62,9 @@
 
 %%
 
+#include "hash.c"
 #include "y.tab.c"
 #include "main.c"
-#include "hash.c"
 #include "symbols.c"
 
 int yywrap() {

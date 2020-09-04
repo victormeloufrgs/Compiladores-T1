@@ -1,6 +1,11 @@
 %{
-int yylex();
-void yyerror(const char *s);
+    #include <stdlib.h>
+    #include <stdio.h>
+    #include <string.h>
+    #include "hash.h"
+
+    int yylex();
+    void yyerror(const char *s);
 %}
  
 %token KW_CHAR          
@@ -20,7 +25,9 @@ void yyerror(const char *s);
 %token OPERATOR_LE      
 %token OPERATOR_GE      
 %token OPERATOR_EQ      
-%token OPERATOR_DIF     
+%token OPERATOR_DIF 
+
+%union { HASH_NODE *symbol; }
 
 %token TK_IDENTIFIER    
 
@@ -35,10 +42,61 @@ void yyerror(const char *s);
 
 %%
 
-programa: KW_CHAR TK_IDENTIFIER '=' LIT_CHAR programa
-        | KW_INT TK_IDENTIFIER '=' LIT_INTEGER programa
+program: expr
+    ;
+
+expr: var_declaration ';' expr | function ';' expr
+    |
+    ;
+
+var_declaration: TK_IDENTIFIER '=' type ':' lit | vet_declaration
+    ;
+
+type: KW_CHAR
+    | KW_BOOL
+    | KW_INT
+    | KW_FLOAT
+;
+
+lit: LIT_CHAR
+    | LIT_INTEGER
+    | LIT_FLOAT
+    | LIT_TRUE
+    | LIT_FALSE
+;
+
+vet_declaration: TK_IDENTIFIER '=' vet_type;
+
+vet_type: type '[' LIT_INTEGER ']' vet_maybe_value;
+
+vet_maybe_value: ':' vet_value
         |
         ;
+
+vet_value: vet_value_int 
+        | vet_value_float 
+        | vet_value_char
+        ;
+
+vet_value_int: LIT_INTEGER vet_value_int_opt;
+vet_value_int_opt: LIT_INTEGER vet_value_int_opt
+                |
+                ;
+
+vet_value_float: LIT_FLOAT vet_value_float_opt;
+vet_value_float_opt: LIT_FLOAT vet_value_float_opt
+                |
+                ;
+
+vet_value_char: LIT_CHAR vet_value_char_opt;
+vet_value_char_opt: LIT_CHAR vet_value_char_opt
+                |
+                ;
+
+
+
+function:
+    ;
 
 %%
 

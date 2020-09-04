@@ -1,0 +1,41 @@
+byte short long float double when then else while for read return print
+<= >= == != && ||
+hahaha999
+999hahaha
+_um
+dois_tres
+quatro_999
+jasd_9asada_1231
+1231.123123
+124124123.123123123
+1.1
+2.2
+09876(8765
+'a'
+'f'
+'-'
+"basdaaas"
+"casdas"
+"Mensagem!" "seguido1"
+"seguido2""seguido3"
+"string com \"aspas internas\""
+"string com \n break line\n"
++
+-
+*
+/
+'*'
+' '
+'/'
+'$'
+'	'
+// Comentario de uma linha <= float double oi
+/*
+	Comentario de multiplas linhas
+	foo bar
+	>= !=
+	53
+*/
+long foo = 43
+float bar = 43.7
+for (long i; i <= 10; i = i+1) { print("test \"bar\" \n") }

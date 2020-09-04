@@ -10,17 +10,17 @@ Matrícula:  00285640
 
 #define HASH_SIZE 997
 
-typedef struct TOKEN 
+typedef struct hash_node_struct
 {
-    int id;
-    char *value;
-    struct TOKEN* next;
-} TOKEN;
+    int type;
+    char *text;
+    struct hash_node_struct* next;
+} HASH_NODE;
 
 void hashInit(void);
 int hashAddress(char *value);
-TOKEN *hashFind(char *value);
-TOKEN *hashInsert(int id, char *value);
+HASH_NODE *hashFind(char *text);
+HASH_NODE *hashInsert(char *text, int type);
 void hashPrint(void);
 
 #endif

@@ -45,7 +45,7 @@
 '[!-~]'                         hashInsert(LIT_CHAR, yytext); return LIT_CHAR;
 \"[!|#-~|\\\"|\\n ]+\"           hashInsert(LIT_STRING, yytext); return LIT_STRING;
 
-[@|_|A-z][0-9|@|_|A-z]*         hashInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER;  
+[@|_|A-Z|a-z][0-9|@|_|A-Z|a-z]*         hashInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER;  
 
 
 "//".*

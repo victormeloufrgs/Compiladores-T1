@@ -1,2 +1,10 @@
-char charrr = 'a'
-int numero_2 = 2
+// UFRGS - Compiladores - Marcelo Johann - 2020/1
+
+b = bool : FALSE;
+
+c = char : 'x';
+a = int: 0;
+i = int: 0;
+f = float: 0.0;
+
+v1 = int[10]: 0 0 0 0 0 0 0 0 0 0; mat = int [10]; 

@@ -7,4 +7,3 @@
 #define SYMBOL_IDENTIFIER 7
 
 const char* getSymbolName(int symbol);
-int getSymbolFromToken(int id);
