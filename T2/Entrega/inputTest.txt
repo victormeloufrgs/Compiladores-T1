@@ -1,0 +1,2 @@
+char charrr = 'a'
+int numero_2 = 2
