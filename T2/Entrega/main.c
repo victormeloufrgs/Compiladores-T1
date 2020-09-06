@@ -12,13 +12,17 @@ int main(int argc, char ** argv) {
     }
 
     yyin = fopen(argv[1], "r");
+    
     if (yyin ==0) {
         fprintf(stderr,"Can not open file\n");
         exit(2);
     }
 
     yyparse();
-    fprintf(stderr,"Compilation success\n");
+    
+    fprintf(stderr,"Compilation success!\n");
+    
     // hashPrint();
+    
     exit(0);
 }

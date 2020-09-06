@@ -1,3 +1,8 @@
+/*
+Aluno:      Victor dos Santos Melo
+Matrícula:  00285640
+*/
+
 #include "symbols.h"
 
 const char* getSymbolName(int symbol) {

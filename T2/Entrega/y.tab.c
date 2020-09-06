@@ -67,7 +67,7 @@
 
 
 /* First part of user prologue.  */
-#line 1 "parser.y"
+#line 6 "parser.y"
 
     #include <stdlib.h>
     #include <stdio.h>
@@ -199,7 +199,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 40 "parser.y"
+#line 45 "parser.y"
  HASH_NODE *symbol; 
 
 #line 206 "y.tab.c"
@@ -665,15 +665,15 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    55,    55,    56,    57,    60,    61,    64,    65,    66,
-      67,    70,    71,    72,    73,    74,    77,    79,    81,    82,
-      85,    86,    87,    88,    89,    90,    91,    92,    93,    94,
-      97,   100,   103,   104,   107,   108,   111,   114,   115,   118,
-     119,   120,   121,   122,   123,   126,   129,   130,   133,   134,
-     137,   138,   141,   142,   143,   146,   147,   150,   151,   154,
-     155,   156,   157,   158,   159,   162,   163,   166,   167,   168,
-     169,   170,   171,   172,   173,   174,   175,   176,   177,   180,
-     183,   184
+       0,    60,    60,    61,    62,    65,    66,    69,    70,    71,
+      72,    75,    76,    77,    78,    79,    82,    84,    86,    87,
+      90,    91,    92,    93,    94,    95,    96,    97,    98,    99,
+     102,   105,   108,   109,   112,   113,   116,   119,   120,   123,
+     124,   125,   126,   127,   128,   131,   134,   135,   138,   139,
+     142,   143,   146,   147,   148,   151,   152,   155,   156,   159,
+     160,   161,   162,   163,   164,   167,   168,   171,   172,   173,
+     174,   175,   176,   177,   178,   179,   180,   181,   182,   185,
+     188,   189
 };
 #endif
 
@@ -1558,7 +1558,7 @@ yyreturn:
   return yyresult;
 }
 
-#line 187 "parser.y"
+#line 192 "parser.y"
 
 
 void yyerror(const char *s) {
