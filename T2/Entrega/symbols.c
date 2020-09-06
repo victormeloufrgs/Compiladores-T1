@@ -5,6 +5,7 @@ Matrícula:  00285640
 
 #include "symbols.h"
 
+// Usado no hashPrint()
 const char* getSymbolName(int symbol) {
     switch (symbol) {
         case SYMBOL_LIT_INTEGER: return "SYMBOL_LIT_INTEGER";

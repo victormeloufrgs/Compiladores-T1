@@ -57,7 +57,7 @@
 [0-9|A-F]+                       { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_INTEGER); return LIT_INTEGER; }
 [0-9|A-F]*\.[0-9|A-F]+           { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_FLOAT); return LIT_FLOAT; }
 '[!-~]'                          { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_CHAR); return LIT_CHAR; }
-\"[!|#-~|\\\"|\\n ]+\"           { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_STRING); return LIT_STRING; }
+\"(\\.|[^"\\])*\"                { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_STRING); return LIT_STRING; }
 
 [@|_|A-Z|a-z][0-9|@|_|A-Z|a-z]*  { yylval.symbol = hashInsert(yytext, SYMBOL_IDENTIFIER); return TK_IDENTIFIER; }
 

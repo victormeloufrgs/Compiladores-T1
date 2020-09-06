@@ -22,7 +22,7 @@ Matrícula:  00285640
 %token KW_THEN
 %token KW_ELSE
 %token KW_WHILE
-%token KW_LOOP          
+%token KW_LOOP
 %token KW_READ          
 %token KW_PRINT         
 %token KW_RETURN        
@@ -54,6 +54,11 @@ Matrícula:  00285640
 %token LIT_STRING
 
 %token TOKEN_ERROR
+
+%left OPERATOR_OR OPERATOR_AND
+%left OPERATOR_LE OPERATOR_LT OPERATOR_GE OPERATOR_GT OPERATOR_EQ OPERATOR_DIF OPERATOR_NOT
+%left OPERATOR_PLUS OPERATOR_MINUS
+%left OPERATOR_MULT OPERATOR_DIV
 
 %%
 
@@ -126,6 +131,7 @@ command: command_attr
     | command_flow
     | command_block
     | command_print
+    |
     ;
 
 command_print:  KW_PRINT print_elem maybe_print_elems

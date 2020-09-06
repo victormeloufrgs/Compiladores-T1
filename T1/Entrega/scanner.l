@@ -41,9 +41,9 @@
 "TRUE"                          hashInsert(LIT_TRUE, yytext); return LIT_TRUE;
 "FALSE"                         hashInsert(LIT_FALSE, yytext); return LIT_FALSE;
 [0-9|A-F]+                      hashInsert(LIT_INTEGER, yytext); return LIT_INTEGER;
-[0-9|A-F]*\.[0-9|A-F]+         hashInsert(LIT_FLOAT, yytext); return LIT_FLOAT;
+[0-9|A-F]*\.[0-9|A-F]+          hashInsert(LIT_FLOAT, yytext); return LIT_FLOAT;
 '[!-~]'                         hashInsert(LIT_CHAR, yytext); return LIT_CHAR;
-\"[!|#-~|\\\"|\\n ]+\"           hashInsert(LIT_STRING, yytext); return LIT_STRING;
+\"(\\.|[^"\\])*\"               hashInsert(LIT_STRING, yytext); return LIT_STRING;
 
 [@|_|A-Z|a-z][0-9|@|_|A-Z|a-z]*         hashInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER;  
 
