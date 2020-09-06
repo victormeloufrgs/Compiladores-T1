@@ -42,6 +42,7 @@ main () = int
     }
   else
     print "OK!\n"
+    print "V" 23 A+52
   };
 
 incn (x = int, n = int ) = int

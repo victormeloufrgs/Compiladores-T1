@@ -85,9 +85,13 @@ vet_maybe_value: ':' vet_value
 vet_value: LIT_INTEGER vet_value 
          | LIT_FLOAT vet_value 
          | LIT_CHAR vet_value
+         | LIT_TRUE vet_value
+         | LIT_FALSE vet_value
          | LIT_INTEGER
          | LIT_FLOAT
          | LIT_CHAR
+         | LIT_TRUE
+         | LIT_FALSE
          ;
 
 function: function_header command_block
@@ -113,14 +117,22 @@ command_seq: command command_seq
 
 command: command_attr
     | KW_READ TK_IDENTIFIER
-    | command_print
     | KW_RETURN expr
     | command_flow
     | command_block
+    | command_print
     ;
 
-command_print:  KW_PRINT LIT_STRING
-    | KW_PRINT expr
+command_print:  KW_PRINT print_elem maybe_print_elems
+    ;
+
+print_elem: LIT_STRING
+    | expr
+    ;
+
+maybe_print_elems: ',' print_elem maybe_print_elems
+    |
+    ;
 
 command_attr: TK_IDENTIFIER '=' expr
     | TK_IDENTIFIER '[' expr ']' '=' expr

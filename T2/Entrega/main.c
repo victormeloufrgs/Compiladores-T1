@@ -19,6 +19,6 @@ int main(int argc, char ** argv) {
 
     yyparse();
     fprintf(stderr,"Compilation success\n");
-    hashPrint();
+    // hashPrint();
     exit(0);
 }
