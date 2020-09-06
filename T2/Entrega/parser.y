@@ -22,10 +22,20 @@
 %token KW_PRINT         
 %token KW_RETURN        
 
-%token OPERATOR_LE      
+%token OPERATOR_LE
+%token OPERATOR_LT      
 %token OPERATOR_GE      
+%token OPERATOR_GT      
 %token OPERATOR_EQ      
-%token OPERATOR_DIF 
+%token OPERATOR_DIF     
+%token OPERATOR_OR     
+%token OPERATOR_AND     
+%token OPERATOR_NOT
+
+%token OPERATOR_PLUS 
+%token OPERATOR_MINUS
+%token OPERATOR_MULT
+%token OPERATOR_DIV
 
 %union { HASH_NODE *symbol; }
 
@@ -42,61 +52,125 @@
 
 %%
 
-program: expr
-    ;
-
-expr: var_declaration ';' expr | function ';' expr
+program: global_var_declaration ';' program 
+    | function ';' program
     |
     ;
 
-var_declaration: TK_IDENTIFIER '=' type ':' lit | vet_declaration
+global_var_declaration: TK_IDENTIFIER '=' type ':' lit 
+    | vet_declaration
     ;
 
 type: KW_CHAR
     | KW_BOOL
     | KW_INT
     | KW_FLOAT
-;
+    ;
 
 lit: LIT_CHAR
     | LIT_INTEGER
     | LIT_FLOAT
     | LIT_TRUE
     | LIT_FALSE
-;
+    ;
 
 vet_declaration: TK_IDENTIFIER '=' vet_type;
 
 vet_type: type '[' LIT_INTEGER ']' vet_maybe_value;
 
 vet_maybe_value: ':' vet_value
-        |
-        ;
-
-vet_value: vet_value_int 
-        | vet_value_float 
-        | vet_value_char
-        ;
-
-vet_value_int: LIT_INTEGER vet_value_int_opt;
-vet_value_int_opt: LIT_INTEGER vet_value_int_opt
-                |
-                ;
-
-vet_value_float: LIT_FLOAT vet_value_float_opt;
-vet_value_float_opt: LIT_FLOAT vet_value_float_opt
-                |
-                ;
-
-vet_value_char: LIT_CHAR vet_value_char_opt;
-vet_value_char_opt: LIT_CHAR vet_value_char_opt
-                |
-                ;
-
-
-
-function:
+    |
     ;
+
+vet_value: LIT_INTEGER vet_value 
+         | LIT_FLOAT vet_value 
+         | LIT_CHAR vet_value
+         | LIT_INTEGER
+         | LIT_FLOAT
+         | LIT_CHAR
+         ;
+
+function: function_header command_block
+    ;
+
+function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' type
+    ;
+
+maybe_function_header_params: function_header_params
+    |
+    ;
+    
+function_header_params: TK_IDENTIFIER '=' type ',' function_header_params
+    | TK_IDENTIFIER '=' type
+    ;
+
+command_block: '{' command_seq '}'
+    ;
+
+command_seq: command command_seq
+    |
+    ;
+
+command: command_attr
+    | KW_READ TK_IDENTIFIER
+    | command_print
+    | KW_RETURN expr
+    | command_flow
+    | command_block
+    ;
+
+command_print:  KW_PRINT LIT_STRING
+    | KW_PRINT expr
+
+command_attr: TK_IDENTIFIER '=' expr
+    | TK_IDENTIFIER '[' expr ']' '=' expr
+    ;
+
+command_flow: KW_IF '(' expr ')' KW_THEN command maybe_else
+    | KW_WHILE '(' expr ')' command
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
+    ;
+
+maybe_else: KW_ELSE command
+    |
+    ;
+
+expr_cont_list: ',' expr expr_cont_list
+    |
+    ;
+
+expr: expr bin_operator expr
+    | '(' expr ')'
+    | OPERATOR_NOT expr
+    | TK_IDENTIFIER opt_array_index
+    | lit
+    | function_call
+    ;
+
+opt_array_index: '[' expr ']' 
+    | 
+    ;
+
+bin_operator: OPERATOR_PLUS
+            | OPERATOR_MINUS
+            | OPERATOR_MULT
+            | OPERATOR_DIV
+            | OPERATOR_LE
+            | OPERATOR_LT      
+            | OPERATOR_GE      
+            | OPERATOR_GT      
+            | OPERATOR_EQ      
+            | OPERATOR_DIF     
+            | OPERATOR_OR     
+            | OPERATOR_AND
+            ;
+
+function_call: TK_IDENTIFIER '(' function_call_args ')'
+    ;
+
+function_call_args: expr
+        | expr ',' function_call_args
+        ;
 
 %%
 

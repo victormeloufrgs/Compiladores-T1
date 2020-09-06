@@ -34,12 +34,23 @@
 "print"                         return KW_PRINT;   
 "return"                        return KW_RETURN;
 
-[,|;|:|(|)|\[|\]|{|}|+|-|*|/|<|>|=|\||^|~|&|$|#]    return yytext[0];
 
+"+"                             return OPERATOR_PLUS;
+"-"                             return OPERATOR_MINUS;
+"*"                             return OPERATOR_MULT;
+"/"                             return OPERATOR_DIV;
+
+"|"                             return OPERATOR_OR;                           
+"^"                             return OPERATOR_AND;
+"~"                             return OPERATOR_NOT;
+"<"                             return OPERATOR_LT;
 "<="                            return OPERATOR_LE;  
+">"                             return OPERATOR_GT;
 ">="                            return OPERATOR_GE;  
 "=="                            return OPERATOR_EQ;  
 "!="                            return OPERATOR_DIF;
+
+[,|;|:|(|)|\[|\]|{|}|=|&|$|#]    return yytext[0];
 
 "TRUE"                           { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_TRUE); return LIT_TRUE; }
 "FALSE"                          { yylval.symbol = hashInsert(yytext, SYMBOL_LIT_FALSE); return LIT_FALSE; }

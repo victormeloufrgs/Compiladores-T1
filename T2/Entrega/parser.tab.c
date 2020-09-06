@@ -77,7 +77,7 @@
     int yylex();
     void yyerror(const char *s);
 
-#line 81 "y.tab.c"
+#line 81 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -100,10 +100,7 @@
 #  endif
 # endif
 
-/* Use api.header.include to #include this header
-   instead of duplicating it here.  */
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -157,43 +154,6 @@ extern int yydebug;
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Token kinds.  */
-#define YYEOF 0
-#define YYerror 256
-#define YYUNDEF 257
-#define KW_CHAR 258
-#define KW_INT 259
-#define KW_FLOAT 260
-#define KW_BOOL 261
-#define KW_IF 262
-#define KW_THEN 263
-#define KW_ELSE 264
-#define KW_WHILE 265
-#define KW_LOOP 266
-#define KW_READ 267
-#define KW_PRINT 268
-#define KW_RETURN 269
-#define OPERATOR_LE 270
-#define OPERATOR_LT 271
-#define OPERATOR_GE 272
-#define OPERATOR_GT 273
-#define OPERATOR_EQ 274
-#define OPERATOR_DIF 275
-#define OPERATOR_OR 276
-#define OPERATOR_AND 277
-#define OPERATOR_NOT 278
-#define OPERATOR_PLUS 279
-#define OPERATOR_MINUS 280
-#define OPERATOR_MULT 281
-#define OPERATOR_DIV 282
-#define TK_IDENTIFIER 283
-#define LIT_INTEGER 284
-#define LIT_FLOAT 285
-#define LIT_TRUE 286
-#define LIT_FALSE 287
-#define LIT_CHAR 288
-#define LIT_STRING 289
-#define TOKEN_ERROR 290
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -202,7 +162,7 @@ union YYSTYPE
 #line 40 "parser.y"
  HASH_NODE *symbol; 
 
-#line 206 "y.tab.c"
+#line 166 "parser.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -215,7 +175,7 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -1354,7 +1314,7 @@ yyreduce:
   switch (yyn)
     {
 
-#line 1358 "y.tab.c"
+#line 1318 "parser.tab.c"
 
       default: break;
     }
