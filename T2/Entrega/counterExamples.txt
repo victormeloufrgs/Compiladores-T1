@@ -1,0 +1,3 @@
+function () = int {
+    while(5) { }
+};

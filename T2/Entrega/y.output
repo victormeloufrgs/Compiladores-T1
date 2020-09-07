@@ -3,7 +3,13 @@ Terminals unused in grammar
     TOKEN_ERROR
 
 
-State 140 conflicts: 1 shift/reduce
+State 11 conflicts: 9 shift/reduce
+State 32 conflicts: 9 shift/reduce
+State 96 conflicts: 8 shift/reduce
+State 120 conflicts: 8 shift/reduce
+State 136 conflicts: 1 shift/reduce
+State 150 conflicts: 8 shift/reduce
+State 153 conflicts: 8 shift/reduce
 
 
 Grammar
@@ -48,118 +54,114 @@ Grammar
 
    29 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' type
 
-   30 maybe_function_header_params: function_header_params
-   31                             | %empty
+   30 maybe_function_header_params: TK_IDENTIFIER '=' KW_CHAR function_header_params
+   31                             | TK_IDENTIFIER '=' KW_BOOL function_header_params
+   32                             | TK_IDENTIFIER '=' KW_INT function_header_params
+   33                             | TK_IDENTIFIER '=' KW_FLOAT function_header_params
+   34                             | %empty
 
-   32 function_header_params: TK_IDENTIFIER '=' KW_CHAR ',' maybe_function_header_params
-   33                       | TK_IDENTIFIER '=' KW_BOOL ',' maybe_function_header_params
-   34                       | TK_IDENTIFIER '=' KW_INT ',' maybe_function_header_params
-   35                       | TK_IDENTIFIER '=' KW_FLOAT ',' maybe_function_header_params
+   35 function_header_params: ',' TK_IDENTIFIER '=' KW_CHAR maybe_function_header_params
+   36                       | ',' TK_IDENTIFIER '=' KW_BOOL maybe_function_header_params
+   37                       | ',' TK_IDENTIFIER '=' KW_INT maybe_function_header_params
+   38                       | ',' TK_IDENTIFIER '=' KW_FLOAT maybe_function_header_params
+   39                       | %empty
 
-   36 command_block: '{' command_seq '}'
+   40 command_block: '{' command_seq
 
-   37 command_seq: command command_seq
-   38            | %empty
+   41 command_seq: command command_seq
+   42            | '}'
 
-   39 command: command_attr
-   40        | KW_READ TK_IDENTIFIER
-   41        | KW_RETURN expr
-   42        | command_flow
-   43        | command_block
-   44        | command_print
+   43 command: TK_IDENTIFIER '=' expr
+   44        | TK_IDENTIFIER '[' expr ']' '=' expr
+   45        | KW_READ TK_IDENTIFIER
+   46        | KW_RETURN expr
+   47        | KW_IF '(' expr ')' KW_THEN command maybe_else
+   48        | KW_WHILE '(' expr ')' command
+   49        | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
+   50        | KW_PRINT LIT_STRING maybe_print_elems
+   51        | KW_PRINT expr maybe_print_elems
+   52        | command_block
+   53        | %empty
 
-   45 command_print: KW_PRINT print_elem maybe_print_elems
+   54 maybe_print_elems: ',' LIT_STRING maybe_print_elems
+   55                  | ',' expr maybe_print_elems
+   56                  | %empty
 
-   46 print_elem: LIT_STRING
-   47           | expr
+   57 maybe_else: KW_ELSE command
+   58           | %empty
 
-   48 maybe_print_elems: ',' print_elem maybe_print_elems
-   49                  | %empty
+   59 expr_cont_list: ',' expr expr_cont_list
+   60               | %empty
 
-   50 command_attr: TK_IDENTIFIER '=' expr
-   51             | TK_IDENTIFIER '[' expr ']' '=' expr
+   61 expr: expr OPERATOR_PLUS expr
+   62     | expr OPERATOR_MINUS expr
+   63     | expr OPERATOR_MULT expr
+   64     | expr OPERATOR_DIV expr
+   65     | expr OPERATOR_LE expr
+   66     | expr OPERATOR_LT expr
+   67     | expr OPERATOR_GE expr
+   68     | expr OPERATOR_GT expr
+   69     | expr OPERATOR_EQ expr
+   70     | expr OPERATOR_DIF expr
+   71     | expr OPERATOR_OR expr
+   72     | expr OPERATOR_AND expr
+   73     | '(' expr ')'
+   74     | OPERATOR_NOT expr
+   75     | TK_IDENTIFIER
+   76     | TK_IDENTIFIER '[' expr ']'
+   77     | TK_IDENTIFIER '(' function_call_args ')'
+   78     | lit
 
-   52 command_flow: KW_IF '(' expr ')' KW_THEN command maybe_else
-   53             | KW_WHILE '(' expr ')' command
-   54             | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
-
-   55 maybe_else: KW_ELSE command
-   56           | %empty
-
-   57 expr_cont_list: ',' expr expr_cont_list
-   58               | %empty
-
-   59 expr: expr OPERATOR_PLUS expr
-   60     | expr OPERATOR_MINUS expr
-   61     | expr OPERATOR_MULT expr
-   62     | expr OPERATOR_DIV expr
-   63     | expr OPERATOR_LE expr
-   64     | expr OPERATOR_LT expr
-   65     | expr OPERATOR_GE expr
-   66     | expr OPERATOR_GT expr
-   67     | expr OPERATOR_EQ expr
-   68     | expr OPERATOR_DIF expr
-   69     | expr OPERATOR_OR expr
-   70     | expr OPERATOR_AND expr
-   71     | '(' expr ')'
-   72     | OPERATOR_NOT expr
-   73     | TK_IDENTIFIER opt_array_index_or_function_call
-   74     | lit
-
-   75 opt_array_index_or_function_call: '[' expr ']'
-   76                                 | '(' function_call_args ')'
-   77                                 | %empty
-
-   78 function_call_args: expr
-   79                   | expr ',' function_call_args
+   79 function_call_args: expr
+   80                   | expr ',' function_call_args
 
 
 Terminals, with rules where they appear
 
     $end (0) 0
-    '(' (40) 29 52 53 54 71 76
-    ')' (41) 29 52 53 54 71 76
-    ',' (44) 32 33 34 35 48 57 79
-    ':' (58) 5 16 54
+    '(' (40) 29 47 48 49 73 77
+    ')' (41) 29 47 48 49 73 77
+    ',' (44) 35 36 37 38 54 55 59 80
+    ':' (58) 5 16 49
     ';' (59) 1 2
-    '=' (61) 4 29 32 33 34 35 50 51
-    '[' (91) 6 51 75
-    ']' (93) 6 51 75
-    '{' (123) 36
-    '}' (125) 36
+    '=' (61) 4 29 30 31 32 33 35 36 37 38 43 44
+    '[' (91) 6 44 76
+    ']' (93) 6 44 76
+    '{' (123) 40
+    '}' (125) 42
     error (256)
-    KW_CHAR (258) 7 32
-    KW_INT (259) 9 34
-    KW_FLOAT (260) 10 35
-    KW_BOOL (261) 8 33
-    KW_IF (262) 52
-    KW_THEN (263) 52
-    KW_ELSE (264) 55
-    KW_WHILE (265) 53
-    KW_LOOP (266) 54
-    KW_READ (267) 40
-    KW_PRINT (268) 45
-    KW_RETURN (269) 41
-    OPERATOR_LE (270) 63
-    OPERATOR_LT (271) 64
-    OPERATOR_GE (272) 65
-    OPERATOR_GT (273) 66
-    OPERATOR_EQ (274) 67
-    OPERATOR_DIF (275) 68
-    OPERATOR_OR (276) 69
-    OPERATOR_AND (277) 70
-    OPERATOR_NOT (278) 72
-    OPERATOR_PLUS (279) 59
-    OPERATOR_MINUS (280) 60
-    OPERATOR_MULT (281) 61
-    OPERATOR_DIV (282) 62
-    TK_IDENTIFIER (283) 4 29 32 33 34 35 40 50 51 54 73
+    KW_CHAR (258) 7 30 35
+    KW_INT (259) 9 32 37
+    KW_FLOAT (260) 10 33 38
+    KW_BOOL (261) 8 31 36
+    KW_IF (262) 47
+    KW_THEN (263) 47
+    KW_ELSE (264) 57
+    KW_WHILE (265) 48
+    KW_LOOP (266) 49
+    KW_READ (267) 45
+    KW_PRINT (268) 50 51
+    KW_RETURN (269) 46
+    OPERATOR_LE (270) 65
+    OPERATOR_LT (271) 66
+    OPERATOR_GE (272) 67
+    OPERATOR_GT (273) 68
+    OPERATOR_EQ (274) 69
+    OPERATOR_DIF (275) 70
+    OPERATOR_OR (276) 71
+    OPERATOR_AND (277) 72
+    OPERATOR_NOT (278) 74
+    OPERATOR_PLUS (279) 61
+    OPERATOR_MINUS (280) 62
+    OPERATOR_MULT (281) 63
+    OPERATOR_DIV (282) 64
+    TK_IDENTIFIER (283) 4 29 30 31 32 33 35 36 37 38 43 44 45 49 75 76 77
     LIT_INTEGER (284) 6 12 18 23
     LIT_FLOAT (285) 13 19 24
     LIT_TRUE (286) 14 21 26
     LIT_FALSE (287) 15 22 27
     LIT_CHAR (288) 11 20 25
-    LIT_STRING (289) 46
+    LIT_STRING (289) 50 54
     TOKEN_ERROR (290)
 
 
@@ -181,7 +183,7 @@ Nonterminals, with rules where they appear
         on right: 4 29
     lit (51)
         on left: 11 12 13 14 15
-        on right: 5 74
+        on right: 5 78
     vet_maybe_value (52)
         on left: 16 17
         on right: 6
@@ -195,50 +197,35 @@ Nonterminals, with rules where they appear
         on left: 29
         on right: 28
     maybe_function_header_params (56)
-        on left: 30 31
-        on right: 29 32 33 34 35
+        on left: 30 31 32 33 34
+        on right: 29 35 36 37 38
     function_header_params (57)
-        on left: 32 33 34 35
-        on right: 30
+        on left: 35 36 37 38 39
+        on right: 30 31 32 33
     command_block (58)
-        on left: 36
-        on right: 28 43
+        on left: 40
+        on right: 28 52
     command_seq (59)
-        on left: 37 38
-        on right: 36 37
+        on left: 41 42
+        on right: 40 41
     command (60)
-        on left: 39 40 41 42 43 44
-        on right: 37 52 53 54 55
-    command_print (61)
-        on left: 45
-        on right: 44
-    print_elem (62)
-        on left: 46 47
-        on right: 45 48
-    maybe_print_elems (63)
-        on left: 48 49
-        on right: 45 48
-    command_attr (64)
-        on left: 50 51
-        on right: 39
-    command_flow (65)
-        on left: 52 53 54
-        on right: 42
-    maybe_else (66)
-        on left: 55 56
-        on right: 52
-    expr_cont_list (67)
+        on left: 43 44 45 46 47 48 49 50 51 52 53
+        on right: 41 47 48 49 57
+    maybe_print_elems (61)
+        on left: 54 55 56
+        on right: 50 51 54 55
+    maybe_else (62)
         on left: 57 58
-        on right: 54 57
-    expr (68)
-        on left: 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74
-        on right: 41 47 50 51 52 53 54 57 59 60 61 62 63 64 65 66 67 68 69 70 71 72 75 78 79
-    opt_array_index_or_function_call (69)
-        on left: 75 76 77
-        on right: 73
-    function_call_args (70)
-        on left: 78 79
-        on right: 76 79
+        on right: 47
+    expr_cont_list (63)
+        on left: 59 60
+        on right: 49 59
+    expr (64)
+        on left: 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78
+        on right: 43 44 46 47 48 49 51 55 59 61 62 63 64 65 66 67 68 69 70 71 72 73 74 76 79 80
+    function_call_args (65)
+        on left: 79 80
+        on right: 77 80
 
 
 State 0
@@ -260,8 +247,8 @@ State 1
     4 global_var_declaration: TK_IDENTIFIER • '=' type global_var_or_vet_declaration
    29 function_header: TK_IDENTIFIER • '(' maybe_function_header_params ')' '=' type
 
-    '('  shift, and go to state 6
-    '='  shift, and go to state 7
+    '='  shift, and go to state 6
+    '('  shift, and go to state 7
 
 
 State 2
@@ -296,26 +283,25 @@ State 5
 
 State 6
 
-   29 function_header: TK_IDENTIFIER '(' • maybe_function_header_params ')' '=' type
+    4 global_var_declaration: TK_IDENTIFIER '=' • type global_var_or_vet_declaration
 
-    TK_IDENTIFIER  shift, and go to state 13
+    KW_CHAR   shift, and go to state 13
+    KW_INT    shift, and go to state 14
+    KW_FLOAT  shift, and go to state 15
+    KW_BOOL   shift, and go to state 16
 
-    $default  reduce using rule 31 (maybe_function_header_params)
-
-    maybe_function_header_params  go to state 14
-    function_header_params        go to state 15
+    type  go to state 17
 
 
 State 7
 
-    4 global_var_declaration: TK_IDENTIFIER '=' • type global_var_or_vet_declaration
+   29 function_header: TK_IDENTIFIER '(' • maybe_function_header_params ')' '=' type
 
-    KW_CHAR   shift, and go to state 16
-    KW_INT    shift, and go to state 17
-    KW_FLOAT  shift, and go to state 18
-    KW_BOOL   shift, and go to state 19
+    TK_IDENTIFIER  shift, and go to state 18
 
-    type  go to state 20
+    $default  reduce using rule 34 (maybe_function_header_params)
+
+    maybe_function_header_params  go to state 19
 
 
 State 8
@@ -333,7 +319,7 @@ State 9
 
     $default  reduce using rule 3 (program)
 
-    program                 go to state 21
+    program                 go to state 20
     global_var_declaration  go to state 3
     function                go to state 4
     function_header         go to state 5
@@ -347,7 +333,7 @@ State 10
 
     $default  reduce using rule 3 (program)
 
-    program                 go to state 22
+    program                 go to state 21
     global_var_declaration  go to state 3
     function                go to state 4
     function_header         go to state 5
@@ -355,25 +341,31 @@ State 10
 
 State 11
 
-   36 command_block: '{' • command_seq '}'
+   40 command_block: '{' • command_seq
 
-    KW_IF          shift, and go to state 23
-    KW_WHILE       shift, and go to state 24
-    KW_LOOP        shift, and go to state 25
-    KW_READ        shift, and go to state 26
-    KW_PRINT       shift, and go to state 27
-    KW_RETURN      shift, and go to state 28
-    TK_IDENTIFIER  shift, and go to state 29
+    KW_IF          shift, and go to state 22
+    KW_WHILE       shift, and go to state 23
+    KW_LOOP        shift, and go to state 24
+    KW_READ        shift, and go to state 25
+    KW_PRINT       shift, and go to state 26
+    KW_RETURN      shift, and go to state 27
+    TK_IDENTIFIER  shift, and go to state 28
     '{'            shift, and go to state 11
+    '}'            shift, and go to state 29
 
-    $default  reduce using rule 38 (command_seq)
+    KW_IF          [reduce using rule 53 (command)]
+    KW_WHILE       [reduce using rule 53 (command)]
+    KW_LOOP        [reduce using rule 53 (command)]
+    KW_READ        [reduce using rule 53 (command)]
+    KW_PRINT       [reduce using rule 53 (command)]
+    KW_RETURN      [reduce using rule 53 (command)]
+    TK_IDENTIFIER  [reduce using rule 53 (command)]
+    '{'            [reduce using rule 53 (command)]
+    '}'            [reduce using rule 53 (command)]
 
     command_block  go to state 30
     command_seq    go to state 31
     command        go to state 32
-    command_print  go to state 33
-    command_attr   go to state 34
-    command_flow   go to state 35
 
 
 State 12
@@ -385,1991 +377,2108 @@ State 12
 
 State 13
 
-   32 function_header_params: TK_IDENTIFIER • '=' KW_CHAR ',' maybe_function_header_params
-   33                       | TK_IDENTIFIER • '=' KW_BOOL ',' maybe_function_header_params
-   34                       | TK_IDENTIFIER • '=' KW_INT ',' maybe_function_header_params
-   35                       | TK_IDENTIFIER • '=' KW_FLOAT ',' maybe_function_header_params
-
-    '='  shift, and go to state 36
-
-
-State 14
-
-   29 function_header: TK_IDENTIFIER '(' maybe_function_header_params • ')' '=' type
-
-    ')'  shift, and go to state 37
-
-
-State 15
-
-   30 maybe_function_header_params: function_header_params •
-
-    $default  reduce using rule 30 (maybe_function_header_params)
-
-
-State 16
-
     7 type: KW_CHAR •
 
     $default  reduce using rule 7 (type)
 
 
-State 17
+State 14
 
     9 type: KW_INT •
 
     $default  reduce using rule 9 (type)
 
 
-State 18
+State 15
 
    10 type: KW_FLOAT •
 
     $default  reduce using rule 10 (type)
 
 
-State 19
+State 16
 
     8 type: KW_BOOL •
 
     $default  reduce using rule 8 (type)
 
 
-State 20
+State 17
 
     4 global_var_declaration: TK_IDENTIFIER '=' type • global_var_or_vet_declaration
 
-    '['  shift, and go to state 38
-    ':'  shift, and go to state 39
+    ':'  shift, and go to state 33
+    '['  shift, and go to state 34
 
-    global_var_or_vet_declaration  go to state 40
+    global_var_or_vet_declaration  go to state 35
 
 
-State 21
+State 18
+
+   30 maybe_function_header_params: TK_IDENTIFIER • '=' KW_CHAR function_header_params
+   31                             | TK_IDENTIFIER • '=' KW_BOOL function_header_params
+   32                             | TK_IDENTIFIER • '=' KW_INT function_header_params
+   33                             | TK_IDENTIFIER • '=' KW_FLOAT function_header_params
+
+    '='  shift, and go to state 36
+
+
+State 19
+
+   29 function_header: TK_IDENTIFIER '(' maybe_function_header_params • ')' '=' type
+
+    ')'  shift, and go to state 37
+
+
+State 20
 
     1 program: global_var_declaration ';' program •
 
     $default  reduce using rule 1 (program)
 
 
-State 22
+State 21
 
     2 program: function ';' program •
 
     $default  reduce using rule 2 (program)
 
 
+State 22
+
+   47 command: KW_IF • '(' expr ')' KW_THEN command maybe_else
+
+    '('  shift, and go to state 38
+
+
 State 23
 
-   52 command_flow: KW_IF • '(' expr ')' KW_THEN command maybe_else
+   48 command: KW_WHILE • '(' expr ')' command
 
-    '('  shift, and go to state 41
+    '('  shift, and go to state 39
 
 
 State 24
 
-   53 command_flow: KW_WHILE • '(' expr ')' command
+   49 command: KW_LOOP • '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
 
-    '('  shift, and go to state 42
+    '('  shift, and go to state 40
 
 
 State 25
 
-   54 command_flow: KW_LOOP • '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
+   45 command: KW_READ • TK_IDENTIFIER
 
-    '('  shift, and go to state 43
+    TK_IDENTIFIER  shift, and go to state 41
 
 
 State 26
 
-   40 command: KW_READ • TK_IDENTIFIER
+   50 command: KW_PRINT • LIT_STRING maybe_print_elems
+   51        | KW_PRINT • expr maybe_print_elems
 
-    TK_IDENTIFIER  shift, and go to state 44
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    LIT_STRING     shift, and go to state 49
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 52
 
 
 State 27
 
-   45 command_print: KW_PRINT • print_elem maybe_print_elems
+   46 command: KW_RETURN • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    LIT_STRING     shift, and go to state 52
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit         go to state 54
-    print_elem  go to state 55
-    expr        go to state 56
+    lit   go to state 51
+    expr  go to state 53
 
 
 State 28
 
-   41 command: KW_RETURN • expr
+   43 command: TK_IDENTIFIER • '=' expr
+   44        | TK_IDENTIFIER • '[' expr ']' '=' expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 57
+    '='  shift, and go to state 54
+    '['  shift, and go to state 55
 
 
 State 29
 
-   50 command_attr: TK_IDENTIFIER • '=' expr
-   51             | TK_IDENTIFIER • '[' expr ']' '=' expr
+   42 command_seq: '}' •
 
-    '['  shift, and go to state 58
-    '='  shift, and go to state 59
+    $default  reduce using rule 42 (command_seq)
 
 
 State 30
 
-   43 command: command_block •
+   52 command: command_block •
 
-    $default  reduce using rule 43 (command)
+    $default  reduce using rule 52 (command)
 
 
 State 31
 
-   36 command_block: '{' command_seq • '}'
+   40 command_block: '{' command_seq •
 
-    '}'  shift, and go to state 60
+    $default  reduce using rule 40 (command_block)
 
 
 State 32
 
-   37 command_seq: command • command_seq
+   41 command_seq: command • command_seq
 
-    KW_IF          shift, and go to state 23
-    KW_WHILE       shift, and go to state 24
-    KW_LOOP        shift, and go to state 25
-    KW_READ        shift, and go to state 26
-    KW_PRINT       shift, and go to state 27
-    KW_RETURN      shift, and go to state 28
-    TK_IDENTIFIER  shift, and go to state 29
+    KW_IF          shift, and go to state 22
+    KW_WHILE       shift, and go to state 23
+    KW_LOOP        shift, and go to state 24
+    KW_READ        shift, and go to state 25
+    KW_PRINT       shift, and go to state 26
+    KW_RETURN      shift, and go to state 27
+    TK_IDENTIFIER  shift, and go to state 28
     '{'            shift, and go to state 11
+    '}'            shift, and go to state 29
 
-    $default  reduce using rule 38 (command_seq)
+    KW_IF          [reduce using rule 53 (command)]
+    KW_WHILE       [reduce using rule 53 (command)]
+    KW_LOOP        [reduce using rule 53 (command)]
+    KW_READ        [reduce using rule 53 (command)]
+    KW_PRINT       [reduce using rule 53 (command)]
+    KW_RETURN      [reduce using rule 53 (command)]
+    TK_IDENTIFIER  [reduce using rule 53 (command)]
+    '{'            [reduce using rule 53 (command)]
+    '}'            [reduce using rule 53 (command)]
 
     command_block  go to state 30
-    command_seq    go to state 61
+    command_seq    go to state 56
     command        go to state 32
-    command_print  go to state 33
-    command_attr   go to state 34
-    command_flow   go to state 35
 
 
 State 33
 
-   44 command: command_print •
+    5 global_var_or_vet_declaration: ':' • lit
 
-    $default  reduce using rule 44 (command)
+    LIT_INTEGER  shift, and go to state 44
+    LIT_FLOAT    shift, and go to state 45
+    LIT_TRUE     shift, and go to state 46
+    LIT_FALSE    shift, and go to state 47
+    LIT_CHAR     shift, and go to state 48
+
+    lit  go to state 57
 
 
 State 34
 
-   39 command: command_attr •
+    6 global_var_or_vet_declaration: '[' • LIT_INTEGER ']' vet_maybe_value
 
-    $default  reduce using rule 39 (command)
+    LIT_INTEGER  shift, and go to state 58
 
 
 State 35
-
-   42 command: command_flow •
-
-    $default  reduce using rule 42 (command)
-
-
-State 36
-
-   32 function_header_params: TK_IDENTIFIER '=' • KW_CHAR ',' maybe_function_header_params
-   33                       | TK_IDENTIFIER '=' • KW_BOOL ',' maybe_function_header_params
-   34                       | TK_IDENTIFIER '=' • KW_INT ',' maybe_function_header_params
-   35                       | TK_IDENTIFIER '=' • KW_FLOAT ',' maybe_function_header_params
-
-    KW_CHAR   shift, and go to state 62
-    KW_INT    shift, and go to state 63
-    KW_FLOAT  shift, and go to state 64
-    KW_BOOL   shift, and go to state 65
-
-
-State 37
-
-   29 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' • '=' type
-
-    '='  shift, and go to state 66
-
-
-State 38
-
-    6 global_var_or_vet_declaration: '[' • LIT_INTEGER ']' vet_maybe_value
-
-    LIT_INTEGER  shift, and go to state 67
-
-
-State 39
-
-    5 global_var_or_vet_declaration: ':' • lit
-
-    LIT_INTEGER  shift, and go to state 47
-    LIT_FLOAT    shift, and go to state 48
-    LIT_TRUE     shift, and go to state 49
-    LIT_FALSE    shift, and go to state 50
-    LIT_CHAR     shift, and go to state 51
-
-    lit  go to state 68
-
-
-State 40
 
     4 global_var_declaration: TK_IDENTIFIER '=' type global_var_or_vet_declaration •
 
     $default  reduce using rule 4 (global_var_declaration)
 
 
+State 36
+
+   30 maybe_function_header_params: TK_IDENTIFIER '=' • KW_CHAR function_header_params
+   31                             | TK_IDENTIFIER '=' • KW_BOOL function_header_params
+   32                             | TK_IDENTIFIER '=' • KW_INT function_header_params
+   33                             | TK_IDENTIFIER '=' • KW_FLOAT function_header_params
+
+    KW_CHAR   shift, and go to state 59
+    KW_INT    shift, and go to state 60
+    KW_FLOAT  shift, and go to state 61
+    KW_BOOL   shift, and go to state 62
+
+
+State 37
+
+   29 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' • '=' type
+
+    '='  shift, and go to state 63
+
+
+State 38
+
+   47 command: KW_IF '(' • expr ')' KW_THEN command maybe_else
+
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 64
+
+
+State 39
+
+   48 command: KW_WHILE '(' • expr ')' command
+
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 65
+
+
+State 40
+
+   49 command: KW_LOOP '(' • TK_IDENTIFIER ':' expr expr_cont_list ')' command
+
+    TK_IDENTIFIER  shift, and go to state 66
+
+
 State 41
 
-   52 command_flow: KW_IF '(' • expr ')' KW_THEN command maybe_else
+   45 command: KW_READ TK_IDENTIFIER •
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 69
+    $default  reduce using rule 45 (command)
 
 
 State 42
 
-   53 command_flow: KW_WHILE '(' • expr ')' command
+   74 expr: OPERATOR_NOT • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 70
+    lit   go to state 51
+    expr  go to state 67
 
 
 State 43
 
-   54 command_flow: KW_LOOP '(' • TK_IDENTIFIER ':' expr expr_cont_list ')' command
+   75 expr: TK_IDENTIFIER •
+   76     | TK_IDENTIFIER • '[' expr ']'
+   77     | TK_IDENTIFIER • '(' function_call_args ')'
 
-    TK_IDENTIFIER  shift, and go to state 71
+    '['  shift, and go to state 68
+    '('  shift, and go to state 69
+
+    $default  reduce using rule 75 (expr)
 
 
 State 44
-
-   40 command: KW_READ TK_IDENTIFIER •
-
-    $default  reduce using rule 40 (command)
-
-
-State 45
-
-   72 expr: OPERATOR_NOT • expr
-
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 72
-
-
-State 46
-
-   73 expr: TK_IDENTIFIER • opt_array_index_or_function_call
-
-    '['  shift, and go to state 73
-    '('  shift, and go to state 74
-
-    $default  reduce using rule 77 (opt_array_index_or_function_call)
-
-    opt_array_index_or_function_call  go to state 75
-
-
-State 47
 
    12 lit: LIT_INTEGER •
 
     $default  reduce using rule 12 (lit)
 
 
-State 48
+State 45
 
    13 lit: LIT_FLOAT •
 
     $default  reduce using rule 13 (lit)
 
 
-State 49
+State 46
 
    14 lit: LIT_TRUE •
 
     $default  reduce using rule 14 (lit)
 
 
-State 50
+State 47
 
    15 lit: LIT_FALSE •
 
     $default  reduce using rule 15 (lit)
 
 
-State 51
+State 48
 
    11 lit: LIT_CHAR •
 
     $default  reduce using rule 11 (lit)
 
 
+State 49
+
+   50 command: KW_PRINT LIT_STRING • maybe_print_elems
+
+    ','  shift, and go to state 70
+
+    $default  reduce using rule 56 (maybe_print_elems)
+
+    maybe_print_elems  go to state 71
+
+
+State 50
+
+   73 expr: '(' • expr ')'
+
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 72
+
+
+State 51
+
+   78 expr: lit •
+
+    $default  reduce using rule 78 (expr)
+
+
 State 52
 
-   46 print_elem: LIT_STRING •
+   51 command: KW_PRINT expr • maybe_print_elems
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    $default  reduce using rule 46 (print_elem)
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ','             shift, and go to state 70
+
+    $default  reduce using rule 56 (maybe_print_elems)
+
+    maybe_print_elems  go to state 85
 
 
 State 53
 
-   71 expr: '(' • expr ')'
+   46 command: KW_RETURN expr •
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
-    lit   go to state 54
-    expr  go to state 76
+    $default  reduce using rule 46 (command)
 
 
 State 54
 
-   74 expr: lit •
+   43 command: TK_IDENTIFIER '=' • expr
 
-    $default  reduce using rule 74 (expr)
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 86
 
 
 State 55
 
-   45 command_print: KW_PRINT print_elem • maybe_print_elems
+   44 command: TK_IDENTIFIER '[' • expr ']' '=' expr
 
-    ','  shift, and go to state 77
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    $default  reduce using rule 49 (maybe_print_elems)
-
-    maybe_print_elems  go to state 78
+    lit   go to state 51
+    expr  go to state 87
 
 
 State 56
 
-   47 print_elem: expr •
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   41 command_seq: command command_seq •
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 47 (print_elem)
+    $default  reduce using rule 41 (command_seq)
 
 
 State 57
-
-   41 command: KW_RETURN expr •
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 41 (command)
-
-
-State 58
-
-   51 command_attr: TK_IDENTIFIER '[' • expr ']' '=' expr
-
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 91
-
-
-State 59
-
-   50 command_attr: TK_IDENTIFIER '=' • expr
-
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 92
-
-
-State 60
-
-   36 command_block: '{' command_seq '}' •
-
-    $default  reduce using rule 36 (command_block)
-
-
-State 61
-
-   37 command_seq: command command_seq •
-
-    $default  reduce using rule 37 (command_seq)
-
-
-State 62
-
-   32 function_header_params: TK_IDENTIFIER '=' KW_CHAR • ',' maybe_function_header_params
-
-    ','  shift, and go to state 93
-
-
-State 63
-
-   34 function_header_params: TK_IDENTIFIER '=' KW_INT • ',' maybe_function_header_params
-
-    ','  shift, and go to state 94
-
-
-State 64
-
-   35 function_header_params: TK_IDENTIFIER '=' KW_FLOAT • ',' maybe_function_header_params
-
-    ','  shift, and go to state 95
-
-
-State 65
-
-   33 function_header_params: TK_IDENTIFIER '=' KW_BOOL • ',' maybe_function_header_params
-
-    ','  shift, and go to state 96
-
-
-State 66
-
-   29 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' • type
-
-    KW_CHAR   shift, and go to state 16
-    KW_INT    shift, and go to state 17
-    KW_FLOAT  shift, and go to state 18
-    KW_BOOL   shift, and go to state 19
-
-    type  go to state 97
-
-
-State 67
-
-    6 global_var_or_vet_declaration: '[' LIT_INTEGER • ']' vet_maybe_value
-
-    ']'  shift, and go to state 98
-
-
-State 68
 
     5 global_var_or_vet_declaration: ':' lit •
 
     $default  reduce using rule 5 (global_var_or_vet_declaration)
 
 
+State 58
+
+    6 global_var_or_vet_declaration: '[' LIT_INTEGER • ']' vet_maybe_value
+
+    ']'  shift, and go to state 88
+
+
+State 59
+
+   30 maybe_function_header_params: TK_IDENTIFIER '=' KW_CHAR • function_header_params
+
+    ','  shift, and go to state 89
+
+    $default  reduce using rule 39 (function_header_params)
+
+    function_header_params  go to state 90
+
+
+State 60
+
+   32 maybe_function_header_params: TK_IDENTIFIER '=' KW_INT • function_header_params
+
+    ','  shift, and go to state 89
+
+    $default  reduce using rule 39 (function_header_params)
+
+    function_header_params  go to state 91
+
+
+State 61
+
+   33 maybe_function_header_params: TK_IDENTIFIER '=' KW_FLOAT • function_header_params
+
+    ','  shift, and go to state 89
+
+    $default  reduce using rule 39 (function_header_params)
+
+    function_header_params  go to state 92
+
+
+State 62
+
+   31 maybe_function_header_params: TK_IDENTIFIER '=' KW_BOOL • function_header_params
+
+    ','  shift, and go to state 89
+
+    $default  reduce using rule 39 (function_header_params)
+
+    function_header_params  go to state 93
+
+
+State 63
+
+   29 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' • type
+
+    KW_CHAR   shift, and go to state 13
+    KW_INT    shift, and go to state 14
+    KW_FLOAT  shift, and go to state 15
+    KW_BOOL   shift, and go to state 16
+
+    type  go to state 94
+
+
+State 64
+
+   47 command: KW_IF '(' expr • ')' KW_THEN command maybe_else
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ')'             shift, and go to state 95
+
+
+State 65
+
+   48 command: KW_WHILE '(' expr • ')' command
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ')'             shift, and go to state 96
+
+
+State 66
+
+   49 command: KW_LOOP '(' TK_IDENTIFIER • ':' expr expr_cont_list ')' command
+
+    ':'  shift, and go to state 97
+
+
+State 67
+
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+   74     | OPERATOR_NOT expr •
+
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+
+    $default  reduce using rule 74 (expr)
+
+
+State 68
+
+   76 expr: TK_IDENTIFIER '[' • expr ']'
+
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 98
+
+
 State 69
 
-   52 command_flow: KW_IF '(' expr • ')' KW_THEN command maybe_else
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   77 expr: TK_IDENTIFIER '(' • function_call_args ')'
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ')'             shift, and go to state 99
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit                 go to state 51
+    expr                go to state 99
+    function_call_args  go to state 100
 
 
 State 70
 
-   53 command_flow: KW_WHILE '(' expr • ')' command
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   54 maybe_print_elems: ',' • LIT_STRING maybe_print_elems
+   55                  | ',' • expr maybe_print_elems
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ')'             shift, and go to state 100
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    LIT_STRING     shift, and go to state 101
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 102
 
 
 State 71
 
-   54 command_flow: KW_LOOP '(' TK_IDENTIFIER • ':' expr expr_cont_list ')' command
+   50 command: KW_PRINT LIT_STRING maybe_print_elems •
 
-    ':'  shift, and go to state 101
+    $default  reduce using rule 50 (command)
 
 
 State 72
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-   72     | OPERATOR_NOT expr •
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+   73     | '(' expr • ')'
 
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 72 (expr)
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ')'             shift, and go to state 103
 
 
 State 73
 
-   75 opt_array_index_or_function_call: '[' • expr ']'
+   65 expr: expr OPERATOR_LE • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 102
+    lit   go to state 51
+    expr  go to state 104
 
 
 State 74
 
-   76 opt_array_index_or_function_call: '(' • function_call_args ')'
+   66 expr: expr OPERATOR_LT • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit                 go to state 54
-    expr                go to state 103
-    function_call_args  go to state 104
+    lit   go to state 51
+    expr  go to state 105
 
 
 State 75
 
-   73 expr: TK_IDENTIFIER opt_array_index_or_function_call •
+   67 expr: expr OPERATOR_GE • expr
 
-    $default  reduce using rule 73 (expr)
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 106
 
 
 State 76
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-   71     | '(' expr • ')'
+   68 expr: expr OPERATOR_GT • expr
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ')'             shift, and go to state 105
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 107
 
 
 State 77
 
-   48 maybe_print_elems: ',' • print_elem maybe_print_elems
+   69 expr: expr OPERATOR_EQ • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    LIT_STRING     shift, and go to state 52
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit         go to state 54
-    print_elem  go to state 106
-    expr        go to state 56
+    lit   go to state 51
+    expr  go to state 108
 
 
 State 78
 
-   45 command_print: KW_PRINT print_elem maybe_print_elems •
+   70 expr: expr OPERATOR_DIF • expr
 
-    $default  reduce using rule 45 (command_print)
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 109
 
 
 State 79
 
-   63 expr: expr OPERATOR_LE • expr
+   71 expr: expr OPERATOR_OR • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 107
+    lit   go to state 51
+    expr  go to state 110
 
 
 State 80
 
-   64 expr: expr OPERATOR_LT • expr
+   72 expr: expr OPERATOR_AND • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 108
+    lit   go to state 51
+    expr  go to state 111
 
 
 State 81
 
-   65 expr: expr OPERATOR_GE • expr
+   61 expr: expr OPERATOR_PLUS • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 109
+    lit   go to state 51
+    expr  go to state 112
 
 
 State 82
 
-   66 expr: expr OPERATOR_GT • expr
+   62 expr: expr OPERATOR_MINUS • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 110
+    lit   go to state 51
+    expr  go to state 113
 
 
 State 83
 
-   67 expr: expr OPERATOR_EQ • expr
+   63 expr: expr OPERATOR_MULT • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 111
+    lit   go to state 51
+    expr  go to state 114
 
 
 State 84
 
-   68 expr: expr OPERATOR_DIF • expr
+   64 expr: expr OPERATOR_DIV • expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
-    expr  go to state 112
+    lit   go to state 51
+    expr  go to state 115
 
 
 State 85
 
-   69 expr: expr OPERATOR_OR • expr
+   51 command: KW_PRINT expr maybe_print_elems •
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 113
+    $default  reduce using rule 51 (command)
 
 
 State 86
 
-   70 expr: expr OPERATOR_AND • expr
+   43 command: TK_IDENTIFIER '=' expr •
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
-    lit   go to state 54
-    expr  go to state 114
+    $default  reduce using rule 43 (command)
 
 
 State 87
 
-   59 expr: expr OPERATOR_PLUS • expr
+   44 command: TK_IDENTIFIER '[' expr • ']' '=' expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 115
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ']'             shift, and go to state 116
 
 
 State 88
 
-   60 expr: expr OPERATOR_MINUS • expr
+    6 global_var_or_vet_declaration: '[' LIT_INTEGER ']' • vet_maybe_value
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    ':'  shift, and go to state 117
 
-    lit   go to state 54
-    expr  go to state 116
+    $default  reduce using rule 17 (vet_maybe_value)
+
+    vet_maybe_value  go to state 118
 
 
 State 89
 
-   61 expr: expr OPERATOR_MULT • expr
+   35 function_header_params: ',' • TK_IDENTIFIER '=' KW_CHAR maybe_function_header_params
+   36                       | ',' • TK_IDENTIFIER '=' KW_BOOL maybe_function_header_params
+   37                       | ',' • TK_IDENTIFIER '=' KW_INT maybe_function_header_params
+   38                       | ',' • TK_IDENTIFIER '=' KW_FLOAT maybe_function_header_params
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 117
+    TK_IDENTIFIER  shift, and go to state 119
 
 
 State 90
 
-   62 expr: expr OPERATOR_DIV • expr
+   30 maybe_function_header_params: TK_IDENTIFIER '=' KW_CHAR function_header_params •
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
-
-    lit   go to state 54
-    expr  go to state 118
+    $default  reduce using rule 30 (maybe_function_header_params)
 
 
 State 91
 
-   51 command_attr: TK_IDENTIFIER '[' expr • ']' '=' expr
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   32 maybe_function_header_params: TK_IDENTIFIER '=' KW_INT function_header_params •
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ']'             shift, and go to state 119
+    $default  reduce using rule 32 (maybe_function_header_params)
 
 
 State 92
 
-   50 command_attr: TK_IDENTIFIER '=' expr •
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   33 maybe_function_header_params: TK_IDENTIFIER '=' KW_FLOAT function_header_params •
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 50 (command_attr)
+    $default  reduce using rule 33 (maybe_function_header_params)
 
 
 State 93
 
-   32 function_header_params: TK_IDENTIFIER '=' KW_CHAR ',' • maybe_function_header_params
-
-    TK_IDENTIFIER  shift, and go to state 13
+   31 maybe_function_header_params: TK_IDENTIFIER '=' KW_BOOL function_header_params •
 
     $default  reduce using rule 31 (maybe_function_header_params)
-
-    maybe_function_header_params  go to state 120
-    function_header_params        go to state 15
 
 
 State 94
-
-   34 function_header_params: TK_IDENTIFIER '=' KW_INT ',' • maybe_function_header_params
-
-    TK_IDENTIFIER  shift, and go to state 13
-
-    $default  reduce using rule 31 (maybe_function_header_params)
-
-    maybe_function_header_params  go to state 121
-    function_header_params        go to state 15
-
-
-State 95
-
-   35 function_header_params: TK_IDENTIFIER '=' KW_FLOAT ',' • maybe_function_header_params
-
-    TK_IDENTIFIER  shift, and go to state 13
-
-    $default  reduce using rule 31 (maybe_function_header_params)
-
-    maybe_function_header_params  go to state 122
-    function_header_params        go to state 15
-
-
-State 96
-
-   33 function_header_params: TK_IDENTIFIER '=' KW_BOOL ',' • maybe_function_header_params
-
-    TK_IDENTIFIER  shift, and go to state 13
-
-    $default  reduce using rule 31 (maybe_function_header_params)
-
-    maybe_function_header_params  go to state 123
-    function_header_params        go to state 15
-
-
-State 97
 
    29 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' type •
 
     $default  reduce using rule 29 (function_header)
 
 
+State 95
+
+   47 command: KW_IF '(' expr ')' • KW_THEN command maybe_else
+
+    KW_THEN  shift, and go to state 120
+
+
+State 96
+
+   48 command: KW_WHILE '(' expr ')' • command
+
+    KW_IF          shift, and go to state 22
+    KW_WHILE       shift, and go to state 23
+    KW_LOOP        shift, and go to state 24
+    KW_READ        shift, and go to state 25
+    KW_PRINT       shift, and go to state 26
+    KW_RETURN      shift, and go to state 27
+    TK_IDENTIFIER  shift, and go to state 28
+    '{'            shift, and go to state 11
+
+    KW_IF          [reduce using rule 53 (command)]
+    KW_WHILE       [reduce using rule 53 (command)]
+    KW_LOOP        [reduce using rule 53 (command)]
+    KW_READ        [reduce using rule 53 (command)]
+    KW_PRINT       [reduce using rule 53 (command)]
+    KW_RETURN      [reduce using rule 53 (command)]
+    TK_IDENTIFIER  [reduce using rule 53 (command)]
+    '{'            [reduce using rule 53 (command)]
+    $default       reduce using rule 53 (command)
+
+    command_block  go to state 30
+    command        go to state 121
+
+
+State 97
+
+   49 command: KW_LOOP '(' TK_IDENTIFIER ':' • expr expr_cont_list ')' command
+
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit   go to state 51
+    expr  go to state 122
+
+
 State 98
 
-    6 global_var_or_vet_declaration: '[' LIT_INTEGER ']' • vet_maybe_value
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+   76     | TK_IDENTIFIER '[' expr • ']'
 
-    ':'  shift, and go to state 124
-
-    $default  reduce using rule 17 (vet_maybe_value)
-
-    vet_maybe_value  go to state 125
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ']'             shift, and go to state 123
 
 
 State 99
 
-   52 command_flow: KW_IF '(' expr ')' • KW_THEN command maybe_else
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+   79 function_call_args: expr •
+   80                   | expr • ',' function_call_args
 
-    KW_THEN  shift, and go to state 126
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ','             shift, and go to state 124
+
+    $default  reduce using rule 79 (function_call_args)
 
 
 State 100
 
-   53 command_flow: KW_WHILE '(' expr ')' • command
+   77 expr: TK_IDENTIFIER '(' function_call_args • ')'
 
-    KW_IF          shift, and go to state 23
-    KW_WHILE       shift, and go to state 24
-    KW_LOOP        shift, and go to state 25
-    KW_READ        shift, and go to state 26
-    KW_PRINT       shift, and go to state 27
-    KW_RETURN      shift, and go to state 28
-    TK_IDENTIFIER  shift, and go to state 29
-    '{'            shift, and go to state 11
-
-    command_block  go to state 30
-    command        go to state 127
-    command_print  go to state 33
-    command_attr   go to state 34
-    command_flow   go to state 35
+    ')'  shift, and go to state 125
 
 
 State 101
 
-   54 command_flow: KW_LOOP '(' TK_IDENTIFIER ':' • expr expr_cont_list ')' command
+   54 maybe_print_elems: ',' LIT_STRING • maybe_print_elems
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    ','  shift, and go to state 70
 
-    lit   go to state 54
-    expr  go to state 128
+    $default  reduce using rule 56 (maybe_print_elems)
+
+    maybe_print_elems  go to state 126
 
 
 State 102
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-   75 opt_array_index_or_function_call: '[' expr • ']'
+   55 maybe_print_elems: ',' expr • maybe_print_elems
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ']'             shift, and go to state 129
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ','             shift, and go to state 70
+
+    $default  reduce using rule 56 (maybe_print_elems)
+
+    maybe_print_elems  go to state 127
 
 
 State 103
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-   78 function_call_args: expr •
-   79                   | expr • ',' function_call_args
+   73 expr: '(' expr ')' •
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ','             shift, and go to state 130
-
-    $default  reduce using rule 78 (function_call_args)
+    $default  reduce using rule 73 (expr)
 
 
 State 104
 
-   76 opt_array_index_or_function_call: '(' function_call_args • ')'
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   65     | expr OPERATOR_LE expr •
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    ')'  shift, and go to state 131
-
-
-State 105
-
-   71 expr: '(' expr ')' •
-
-    $default  reduce using rule 71 (expr)
-
-
-State 106
-
-   48 maybe_print_elems: ',' print_elem • maybe_print_elems
-
-    ','  shift, and go to state 77
-
-    $default  reduce using rule 49 (maybe_print_elems)
-
-    maybe_print_elems  go to state 132
-
-
-State 107
-
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   63     | expr OPERATOR_LE expr •
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 63 (expr)
-
-
-State 108
-
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   64     | expr OPERATOR_LT expr •
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 64 (expr)
-
-
-State 109
-
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   65     | expr OPERATOR_GE expr •
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
     $default  reduce using rule 65 (expr)
 
 
-State 110
+State 105
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   66     | expr OPERATOR_GT expr •
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   66     | expr OPERATOR_LT expr •
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
     $default  reduce using rule 66 (expr)
 
 
-State 111
+State 106
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   67     | expr OPERATOR_EQ expr •
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   67     | expr OPERATOR_GE expr •
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
     $default  reduce using rule 67 (expr)
 
 
-State 112
+State 107
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   68     | expr OPERATOR_DIF expr •
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   68     | expr OPERATOR_GT expr •
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
     $default  reduce using rule 68 (expr)
 
 
-State 113
+State 108
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   69     | expr OPERATOR_OR expr •
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   69     | expr OPERATOR_EQ expr •
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
     $default  reduce using rule 69 (expr)
 
 
-State 114
+State 109
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-   70     | expr OPERATOR_AND expr •
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   70     | expr OPERATOR_DIF expr •
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
     $default  reduce using rule 70 (expr)
 
 
-State 115
+State 110
 
-   59 expr: expr • OPERATOR_PLUS expr
-   59     | expr OPERATOR_PLUS expr •
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   71     | expr OPERATOR_OR expr •
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_MULT  shift, and go to state 89
-    OPERATOR_DIV   shift, and go to state 90
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
 
-    $default  reduce using rule 59 (expr)
-
-
-State 116
-
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   60     | expr OPERATOR_MINUS expr •
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-
-    OPERATOR_MULT  shift, and go to state 89
-    OPERATOR_DIV   shift, and go to state 90
-
-    $default  reduce using rule 60 (expr)
+    $default  reduce using rule 71 (expr)
 
 
-State 117
+State 111
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   61     | expr OPERATOR_MULT expr •
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+   72     | expr OPERATOR_AND expr •
+
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+
+    $default  reduce using rule 72 (expr)
+
+
+State 112
+
+   61 expr: expr • OPERATOR_PLUS expr
+   61     | expr OPERATOR_PLUS expr •
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+
+    OPERATOR_MULT  shift, and go to state 83
+    OPERATOR_DIV   shift, and go to state 84
 
     $default  reduce using rule 61 (expr)
 
 
-State 118
+State 113
 
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   62     | expr OPERATOR_DIV expr •
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   62     | expr OPERATOR_MINUS expr •
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+
+    OPERATOR_MULT  shift, and go to state 83
+    OPERATOR_DIV   shift, and go to state 84
 
     $default  reduce using rule 62 (expr)
 
 
-State 119
+State 114
 
-   51 command_attr: TK_IDENTIFIER '[' expr ']' • '=' expr
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   63     | expr OPERATOR_MULT expr •
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    '='  shift, and go to state 133
-
-
-State 120
-
-   32 function_header_params: TK_IDENTIFIER '=' KW_CHAR ',' maybe_function_header_params •
-
-    $default  reduce using rule 32 (function_header_params)
-
-
-State 121
-
-   34 function_header_params: TK_IDENTIFIER '=' KW_INT ',' maybe_function_header_params •
-
-    $default  reduce using rule 34 (function_header_params)
+    $default  reduce using rule 63 (expr)
 
 
-State 122
+State 115
 
-   35 function_header_params: TK_IDENTIFIER '=' KW_FLOAT ',' maybe_function_header_params •
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   64     | expr OPERATOR_DIV expr •
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    $default  reduce using rule 35 (function_header_params)
+    $default  reduce using rule 64 (expr)
 
 
-State 123
+State 116
 
-   33 function_header_params: TK_IDENTIFIER '=' KW_BOOL ',' maybe_function_header_params •
+   44 command: TK_IDENTIFIER '[' expr ']' • '=' expr
 
-    $default  reduce using rule 33 (function_header_params)
+    '='  shift, and go to state 128
 
 
-State 124
+State 117
 
    16 vet_maybe_value: ':' • vet_value
 
-    LIT_INTEGER  shift, and go to state 134
-    LIT_FLOAT    shift, and go to state 135
-    LIT_TRUE     shift, and go to state 136
-    LIT_FALSE    shift, and go to state 137
-    LIT_CHAR     shift, and go to state 138
+    LIT_INTEGER  shift, and go to state 129
+    LIT_FLOAT    shift, and go to state 130
+    LIT_TRUE     shift, and go to state 131
+    LIT_FALSE    shift, and go to state 132
+    LIT_CHAR     shift, and go to state 133
 
-    vet_value  go to state 139
+    vet_value  go to state 134
 
 
-State 125
+State 118
 
     6 global_var_or_vet_declaration: '[' LIT_INTEGER ']' vet_maybe_value •
 
     $default  reduce using rule 6 (global_var_or_vet_declaration)
 
 
-State 126
+State 119
 
-   52 command_flow: KW_IF '(' expr ')' KW_THEN • command maybe_else
+   35 function_header_params: ',' TK_IDENTIFIER • '=' KW_CHAR maybe_function_header_params
+   36                       | ',' TK_IDENTIFIER • '=' KW_BOOL maybe_function_header_params
+   37                       | ',' TK_IDENTIFIER • '=' KW_INT maybe_function_header_params
+   38                       | ',' TK_IDENTIFIER • '=' KW_FLOAT maybe_function_header_params
 
-    KW_IF          shift, and go to state 23
-    KW_WHILE       shift, and go to state 24
-    KW_LOOP        shift, and go to state 25
-    KW_READ        shift, and go to state 26
-    KW_PRINT       shift, and go to state 27
-    KW_RETURN      shift, and go to state 28
-    TK_IDENTIFIER  shift, and go to state 29
+    '='  shift, and go to state 135
+
+
+State 120
+
+   47 command: KW_IF '(' expr ')' KW_THEN • command maybe_else
+
+    KW_IF          shift, and go to state 22
+    KW_WHILE       shift, and go to state 23
+    KW_LOOP        shift, and go to state 24
+    KW_READ        shift, and go to state 25
+    KW_PRINT       shift, and go to state 26
+    KW_RETURN      shift, and go to state 27
+    TK_IDENTIFIER  shift, and go to state 28
     '{'            shift, and go to state 11
 
+    KW_IF          [reduce using rule 53 (command)]
+    KW_WHILE       [reduce using rule 53 (command)]
+    KW_LOOP        [reduce using rule 53 (command)]
+    KW_READ        [reduce using rule 53 (command)]
+    KW_PRINT       [reduce using rule 53 (command)]
+    KW_RETURN      [reduce using rule 53 (command)]
+    TK_IDENTIFIER  [reduce using rule 53 (command)]
+    '{'            [reduce using rule 53 (command)]
+    $default       reduce using rule 53 (command)
+
     command_block  go to state 30
-    command        go to state 140
-    command_print  go to state 33
-    command_attr   go to state 34
-    command_flow   go to state 35
+    command        go to state 136
+
+
+State 121
+
+   48 command: KW_WHILE '(' expr ')' command •
+
+    $default  reduce using rule 48 (command)
+
+
+State 122
+
+   49 command: KW_LOOP '(' TK_IDENTIFIER ':' expr • expr_cont_list ')' command
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ','             shift, and go to state 137
+
+    $default  reduce using rule 60 (expr_cont_list)
+
+    expr_cont_list  go to state 138
+
+
+State 123
+
+   76 expr: TK_IDENTIFIER '[' expr ']' •
+
+    $default  reduce using rule 76 (expr)
+
+
+State 124
+
+   80 function_call_args: expr ',' • function_call_args
+
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
+
+    lit                 go to state 51
+    expr                go to state 99
+    function_call_args  go to state 139
+
+
+State 125
+
+   77 expr: TK_IDENTIFIER '(' function_call_args ')' •
+
+    $default  reduce using rule 77 (expr)
+
+
+State 126
+
+   54 maybe_print_elems: ',' LIT_STRING maybe_print_elems •
+
+    $default  reduce using rule 54 (maybe_print_elems)
 
 
 State 127
 
-   53 command_flow: KW_WHILE '(' expr ')' command •
+   55 maybe_print_elems: ',' expr maybe_print_elems •
 
-    $default  reduce using rule 53 (command_flow)
+    $default  reduce using rule 55 (maybe_print_elems)
 
 
 State 128
 
-   54 command_flow: KW_LOOP '(' TK_IDENTIFIER ':' expr • expr_cont_list ')' command
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   44 command: TK_IDENTIFIER '[' expr ']' '=' • expr
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ','             shift, and go to state 141
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    $default  reduce using rule 58 (expr_cont_list)
-
-    expr_cont_list  go to state 142
+    lit   go to state 51
+    expr  go to state 140
 
 
 State 129
 
-   75 opt_array_index_or_function_call: '[' expr ']' •
+   18 vet_value: LIT_INTEGER • vet_value
+   23          | LIT_INTEGER •
 
-    $default  reduce using rule 75 (opt_array_index_or_function_call)
+    LIT_INTEGER  shift, and go to state 129
+    LIT_FLOAT    shift, and go to state 130
+    LIT_TRUE     shift, and go to state 131
+    LIT_FALSE    shift, and go to state 132
+    LIT_CHAR     shift, and go to state 133
+
+    $default  reduce using rule 23 (vet_value)
+
+    vet_value  go to state 141
 
 
 State 130
 
-   79 function_call_args: expr ',' • function_call_args
+   19 vet_value: LIT_FLOAT • vet_value
+   24          | LIT_FLOAT •
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    LIT_INTEGER  shift, and go to state 129
+    LIT_FLOAT    shift, and go to state 130
+    LIT_TRUE     shift, and go to state 131
+    LIT_FALSE    shift, and go to state 132
+    LIT_CHAR     shift, and go to state 133
 
-    lit                 go to state 54
-    expr                go to state 103
-    function_call_args  go to state 143
+    $default  reduce using rule 24 (vet_value)
+
+    vet_value  go to state 142
 
 
 State 131
 
-   76 opt_array_index_or_function_call: '(' function_call_args ')' •
+   21 vet_value: LIT_TRUE • vet_value
+   26          | LIT_TRUE •
 
-    $default  reduce using rule 76 (opt_array_index_or_function_call)
+    LIT_INTEGER  shift, and go to state 129
+    LIT_FLOAT    shift, and go to state 130
+    LIT_TRUE     shift, and go to state 131
+    LIT_FALSE    shift, and go to state 132
+    LIT_CHAR     shift, and go to state 133
+
+    $default  reduce using rule 26 (vet_value)
+
+    vet_value  go to state 143
 
 
 State 132
 
-   48 maybe_print_elems: ',' print_elem maybe_print_elems •
+   22 vet_value: LIT_FALSE • vet_value
+   27          | LIT_FALSE •
 
-    $default  reduce using rule 48 (maybe_print_elems)
+    LIT_INTEGER  shift, and go to state 129
+    LIT_FLOAT    shift, and go to state 130
+    LIT_TRUE     shift, and go to state 131
+    LIT_FALSE    shift, and go to state 132
+    LIT_CHAR     shift, and go to state 133
+
+    $default  reduce using rule 27 (vet_value)
+
+    vet_value  go to state 144
 
 
 State 133
 
-   51 command_attr: TK_IDENTIFIER '[' expr ']' '=' • expr
+   20 vet_value: LIT_CHAR • vet_value
+   25          | LIT_CHAR •
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    LIT_INTEGER  shift, and go to state 129
+    LIT_FLOAT    shift, and go to state 130
+    LIT_TRUE     shift, and go to state 131
+    LIT_FALSE    shift, and go to state 132
+    LIT_CHAR     shift, and go to state 133
 
-    lit   go to state 54
-    expr  go to state 144
-
-
-State 134
-
-   18 vet_value: LIT_INTEGER • vet_value
-   23          | LIT_INTEGER •
-
-    LIT_INTEGER  shift, and go to state 134
-    LIT_FLOAT    shift, and go to state 135
-    LIT_TRUE     shift, and go to state 136
-    LIT_FALSE    shift, and go to state 137
-    LIT_CHAR     shift, and go to state 138
-
-    $default  reduce using rule 23 (vet_value)
+    $default  reduce using rule 25 (vet_value)
 
     vet_value  go to state 145
 
 
-State 135
-
-   19 vet_value: LIT_FLOAT • vet_value
-   24          | LIT_FLOAT •
-
-    LIT_INTEGER  shift, and go to state 134
-    LIT_FLOAT    shift, and go to state 135
-    LIT_TRUE     shift, and go to state 136
-    LIT_FALSE    shift, and go to state 137
-    LIT_CHAR     shift, and go to state 138
-
-    $default  reduce using rule 24 (vet_value)
-
-    vet_value  go to state 146
-
-
-State 136
-
-   21 vet_value: LIT_TRUE • vet_value
-   26          | LIT_TRUE •
-
-    LIT_INTEGER  shift, and go to state 134
-    LIT_FLOAT    shift, and go to state 135
-    LIT_TRUE     shift, and go to state 136
-    LIT_FALSE    shift, and go to state 137
-    LIT_CHAR     shift, and go to state 138
-
-    $default  reduce using rule 26 (vet_value)
-
-    vet_value  go to state 147
-
-
-State 137
-
-   22 vet_value: LIT_FALSE • vet_value
-   27          | LIT_FALSE •
-
-    LIT_INTEGER  shift, and go to state 134
-    LIT_FLOAT    shift, and go to state 135
-    LIT_TRUE     shift, and go to state 136
-    LIT_FALSE    shift, and go to state 137
-    LIT_CHAR     shift, and go to state 138
-
-    $default  reduce using rule 27 (vet_value)
-
-    vet_value  go to state 148
-
-
-State 138
-
-   20 vet_value: LIT_CHAR • vet_value
-   25          | LIT_CHAR •
-
-    LIT_INTEGER  shift, and go to state 134
-    LIT_FLOAT    shift, and go to state 135
-    LIT_TRUE     shift, and go to state 136
-    LIT_FALSE    shift, and go to state 137
-    LIT_CHAR     shift, and go to state 138
-
-    $default  reduce using rule 25 (vet_value)
-
-    vet_value  go to state 149
-
-
-State 139
+State 134
 
    16 vet_maybe_value: ':' vet_value •
 
     $default  reduce using rule 16 (vet_maybe_value)
 
 
-State 140
+State 135
 
-   52 command_flow: KW_IF '(' expr ')' KW_THEN command • maybe_else
+   35 function_header_params: ',' TK_IDENTIFIER '=' • KW_CHAR maybe_function_header_params
+   36                       | ',' TK_IDENTIFIER '=' • KW_BOOL maybe_function_header_params
+   37                       | ',' TK_IDENTIFIER '=' • KW_INT maybe_function_header_params
+   38                       | ',' TK_IDENTIFIER '=' • KW_FLOAT maybe_function_header_params
+
+    KW_CHAR   shift, and go to state 146
+    KW_INT    shift, and go to state 147
+    KW_FLOAT  shift, and go to state 148
+    KW_BOOL   shift, and go to state 149
+
+
+State 136
+
+   47 command: KW_IF '(' expr ')' KW_THEN command • maybe_else
 
     KW_ELSE  shift, and go to state 150
 
-    KW_ELSE   [reduce using rule 56 (maybe_else)]
-    $default  reduce using rule 56 (maybe_else)
+    KW_ELSE   [reduce using rule 58 (maybe_else)]
+    $default  reduce using rule 58 (maybe_else)
 
     maybe_else  go to state 151
 
 
-State 141
+State 137
 
-   57 expr_cont_list: ',' • expr expr_cont_list
+   59 expr_cont_list: ',' • expr expr_cont_list
 
-    OPERATOR_NOT   shift, and go to state 45
-    TK_IDENTIFIER  shift, and go to state 46
-    LIT_INTEGER    shift, and go to state 47
-    LIT_FLOAT      shift, and go to state 48
-    LIT_TRUE       shift, and go to state 49
-    LIT_FALSE      shift, and go to state 50
-    LIT_CHAR       shift, and go to state 51
-    '('            shift, and go to state 53
+    OPERATOR_NOT   shift, and go to state 42
+    TK_IDENTIFIER  shift, and go to state 43
+    LIT_INTEGER    shift, and go to state 44
+    LIT_FLOAT      shift, and go to state 45
+    LIT_TRUE       shift, and go to state 46
+    LIT_FALSE      shift, and go to state 47
+    LIT_CHAR       shift, and go to state 48
+    '('            shift, and go to state 50
 
-    lit   go to state 54
+    lit   go to state 51
     expr  go to state 152
 
 
-State 142
+State 138
 
-   54 command_flow: KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list • ')' command
+   49 command: KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list • ')' command
 
     ')'  shift, and go to state 153
 
 
-State 143
+State 139
 
-   79 function_call_args: expr ',' function_call_args •
+   80 function_call_args: expr ',' function_call_args •
 
-    $default  reduce using rule 79 (function_call_args)
-
-
-State 144
-
-   51 command_attr: TK_IDENTIFIER '[' expr ']' '=' expr •
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
-
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-
-    $default  reduce using rule 51 (command_attr)
+    $default  reduce using rule 80 (function_call_args)
 
 
-State 145
+State 140
+
+   44 command: TK_IDENTIFIER '[' expr ']' '=' expr •
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
+
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+
+    $default  reduce using rule 44 (command)
+
+
+State 141
 
    18 vet_value: LIT_INTEGER vet_value •
 
     $default  reduce using rule 18 (vet_value)
 
 
-State 146
+State 142
 
    19 vet_value: LIT_FLOAT vet_value •
 
     $default  reduce using rule 19 (vet_value)
 
 
-State 147
+State 143
 
    21 vet_value: LIT_TRUE vet_value •
 
     $default  reduce using rule 21 (vet_value)
 
 
-State 148
+State 144
 
    22 vet_value: LIT_FALSE vet_value •
 
     $default  reduce using rule 22 (vet_value)
 
 
-State 149
+State 145
 
    20 vet_value: LIT_CHAR vet_value •
 
     $default  reduce using rule 20 (vet_value)
 
 
+State 146
+
+   35 function_header_params: ',' TK_IDENTIFIER '=' KW_CHAR • maybe_function_header_params
+
+    TK_IDENTIFIER  shift, and go to state 18
+
+    $default  reduce using rule 34 (maybe_function_header_params)
+
+    maybe_function_header_params  go to state 154
+
+
+State 147
+
+   37 function_header_params: ',' TK_IDENTIFIER '=' KW_INT • maybe_function_header_params
+
+    TK_IDENTIFIER  shift, and go to state 18
+
+    $default  reduce using rule 34 (maybe_function_header_params)
+
+    maybe_function_header_params  go to state 155
+
+
+State 148
+
+   38 function_header_params: ',' TK_IDENTIFIER '=' KW_FLOAT • maybe_function_header_params
+
+    TK_IDENTIFIER  shift, and go to state 18
+
+    $default  reduce using rule 34 (maybe_function_header_params)
+
+    maybe_function_header_params  go to state 156
+
+
+State 149
+
+   36 function_header_params: ',' TK_IDENTIFIER '=' KW_BOOL • maybe_function_header_params
+
+    TK_IDENTIFIER  shift, and go to state 18
+
+    $default  reduce using rule 34 (maybe_function_header_params)
+
+    maybe_function_header_params  go to state 157
+
+
 State 150
 
-   55 maybe_else: KW_ELSE • command
+   57 maybe_else: KW_ELSE • command
 
-    KW_IF          shift, and go to state 23
-    KW_WHILE       shift, and go to state 24
-    KW_LOOP        shift, and go to state 25
-    KW_READ        shift, and go to state 26
-    KW_PRINT       shift, and go to state 27
-    KW_RETURN      shift, and go to state 28
-    TK_IDENTIFIER  shift, and go to state 29
+    KW_IF          shift, and go to state 22
+    KW_WHILE       shift, and go to state 23
+    KW_LOOP        shift, and go to state 24
+    KW_READ        shift, and go to state 25
+    KW_PRINT       shift, and go to state 26
+    KW_RETURN      shift, and go to state 27
+    TK_IDENTIFIER  shift, and go to state 28
     '{'            shift, and go to state 11
 
+    KW_IF          [reduce using rule 53 (command)]
+    KW_WHILE       [reduce using rule 53 (command)]
+    KW_LOOP        [reduce using rule 53 (command)]
+    KW_READ        [reduce using rule 53 (command)]
+    KW_PRINT       [reduce using rule 53 (command)]
+    KW_RETURN      [reduce using rule 53 (command)]
+    TK_IDENTIFIER  [reduce using rule 53 (command)]
+    '{'            [reduce using rule 53 (command)]
+    $default       reduce using rule 53 (command)
+
     command_block  go to state 30
-    command        go to state 154
-    command_print  go to state 33
-    command_attr   go to state 34
-    command_flow   go to state 35
+    command        go to state 158
 
 
 State 151
 
-   52 command_flow: KW_IF '(' expr ')' KW_THEN command maybe_else •
+   47 command: KW_IF '(' expr ')' KW_THEN command maybe_else •
 
-    $default  reduce using rule 52 (command_flow)
+    $default  reduce using rule 47 (command)
 
 
 State 152
 
-   57 expr_cont_list: ',' expr • expr_cont_list
-   59 expr: expr • OPERATOR_PLUS expr
-   60     | expr • OPERATOR_MINUS expr
-   61     | expr • OPERATOR_MULT expr
-   62     | expr • OPERATOR_DIV expr
-   63     | expr • OPERATOR_LE expr
-   64     | expr • OPERATOR_LT expr
-   65     | expr • OPERATOR_GE expr
-   66     | expr • OPERATOR_GT expr
-   67     | expr • OPERATOR_EQ expr
-   68     | expr • OPERATOR_DIF expr
-   69     | expr • OPERATOR_OR expr
-   70     | expr • OPERATOR_AND expr
+   59 expr_cont_list: ',' expr • expr_cont_list
+   61 expr: expr • OPERATOR_PLUS expr
+   62     | expr • OPERATOR_MINUS expr
+   63     | expr • OPERATOR_MULT expr
+   64     | expr • OPERATOR_DIV expr
+   65     | expr • OPERATOR_LE expr
+   66     | expr • OPERATOR_LT expr
+   67     | expr • OPERATOR_GE expr
+   68     | expr • OPERATOR_GT expr
+   69     | expr • OPERATOR_EQ expr
+   70     | expr • OPERATOR_DIF expr
+   71     | expr • OPERATOR_OR expr
+   72     | expr • OPERATOR_AND expr
 
-    OPERATOR_LE     shift, and go to state 79
-    OPERATOR_LT     shift, and go to state 80
-    OPERATOR_GE     shift, and go to state 81
-    OPERATOR_GT     shift, and go to state 82
-    OPERATOR_EQ     shift, and go to state 83
-    OPERATOR_DIF    shift, and go to state 84
-    OPERATOR_OR     shift, and go to state 85
-    OPERATOR_AND    shift, and go to state 86
-    OPERATOR_PLUS   shift, and go to state 87
-    OPERATOR_MINUS  shift, and go to state 88
-    OPERATOR_MULT   shift, and go to state 89
-    OPERATOR_DIV    shift, and go to state 90
-    ','             shift, and go to state 141
+    OPERATOR_LE     shift, and go to state 73
+    OPERATOR_LT     shift, and go to state 74
+    OPERATOR_GE     shift, and go to state 75
+    OPERATOR_GT     shift, and go to state 76
+    OPERATOR_EQ     shift, and go to state 77
+    OPERATOR_DIF    shift, and go to state 78
+    OPERATOR_OR     shift, and go to state 79
+    OPERATOR_AND    shift, and go to state 80
+    OPERATOR_PLUS   shift, and go to state 81
+    OPERATOR_MINUS  shift, and go to state 82
+    OPERATOR_MULT   shift, and go to state 83
+    OPERATOR_DIV    shift, and go to state 84
+    ','             shift, and go to state 137
 
-    $default  reduce using rule 58 (expr_cont_list)
+    $default  reduce using rule 60 (expr_cont_list)
 
-    expr_cont_list  go to state 155
+    expr_cont_list  go to state 159
 
 
 State 153
 
-   54 command_flow: KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' • command
+   49 command: KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' • command
 
-    KW_IF          shift, and go to state 23
-    KW_WHILE       shift, and go to state 24
-    KW_LOOP        shift, and go to state 25
-    KW_READ        shift, and go to state 26
-    KW_PRINT       shift, and go to state 27
-    KW_RETURN      shift, and go to state 28
-    TK_IDENTIFIER  shift, and go to state 29
+    KW_IF          shift, and go to state 22
+    KW_WHILE       shift, and go to state 23
+    KW_LOOP        shift, and go to state 24
+    KW_READ        shift, and go to state 25
+    KW_PRINT       shift, and go to state 26
+    KW_RETURN      shift, and go to state 27
+    TK_IDENTIFIER  shift, and go to state 28
     '{'            shift, and go to state 11
 
+    KW_IF          [reduce using rule 53 (command)]
+    KW_WHILE       [reduce using rule 53 (command)]
+    KW_LOOP        [reduce using rule 53 (command)]
+    KW_READ        [reduce using rule 53 (command)]
+    KW_PRINT       [reduce using rule 53 (command)]
+    KW_RETURN      [reduce using rule 53 (command)]
+    TK_IDENTIFIER  [reduce using rule 53 (command)]
+    '{'            [reduce using rule 53 (command)]
+    $default       reduce using rule 53 (command)
+
     command_block  go to state 30
-    command        go to state 156
-    command_print  go to state 33
-    command_attr   go to state 34
-    command_flow   go to state 35
+    command        go to state 160
 
 
 State 154
 
-   55 maybe_else: KW_ELSE command •
+   35 function_header_params: ',' TK_IDENTIFIER '=' KW_CHAR maybe_function_header_params •
 
-    $default  reduce using rule 55 (maybe_else)
+    $default  reduce using rule 35 (function_header_params)
 
 
 State 155
 
-   57 expr_cont_list: ',' expr expr_cont_list •
+   37 function_header_params: ',' TK_IDENTIFIER '=' KW_INT maybe_function_header_params •
 
-    $default  reduce using rule 57 (expr_cont_list)
+    $default  reduce using rule 37 (function_header_params)
 
 
 State 156
 
-   54 command_flow: KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command •
+   38 function_header_params: ',' TK_IDENTIFIER '=' KW_FLOAT maybe_function_header_params •
 
-    $default  reduce using rule 54 (command_flow)
+    $default  reduce using rule 38 (function_header_params)
+
+
+State 157
+
+   36 function_header_params: ',' TK_IDENTIFIER '=' KW_BOOL maybe_function_header_params •
+
+    $default  reduce using rule 36 (function_header_params)
+
+
+State 158
+
+   57 maybe_else: KW_ELSE command •
+
+    $default  reduce using rule 57 (maybe_else)
+
+
+State 159
+
+   59 expr_cont_list: ',' expr expr_cont_list •
+
+    $default  reduce using rule 59 (expr_cont_list)
+
+
+State 160
+
+   49 command: KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command •
+
+    $default  reduce using rule 49 (command)

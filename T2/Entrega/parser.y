@@ -55,23 +55,24 @@ Matrícula:  00285640
 
 %token TOKEN_ERROR
 
-%left TK_IDENTIFIER LIT_CHAR LIT_INTEGER LIT_FLOAT LIT_TRUE LIT_FALSE
-
 %left OPERATOR_OR OPERATOR_AND
 %left OPERATOR_LE OPERATOR_LT OPERATOR_GE OPERATOR_GT OPERATOR_EQ OPERATOR_DIF OPERATOR_NOT
 %left OPERATOR_PLUS OPERATOR_MINUS
 %left OPERATOR_MULT OPERATOR_DIV
-%left '[' ']'
-%left '(' ')'
 
 %%
 
-program: global_var_declaration ';' program 
-    | function ';' program
+program: declaration_list
+    ;
+
+declaration_list: declaration declaration_list
     |
     ;
 
-global_var_declaration: TK_IDENTIFIER '=' type global_var_or_vet_declaration
+declaration: global_var_declaration | function
+    ;
+    
+global_var_declaration: TK_IDENTIFIER '=' type global_var_or_vet_declaration ';'
     ;
 
 global_var_or_vet_declaration: ':' lit
@@ -107,55 +108,49 @@ vet_value: LIT_INTEGER vet_value
          | LIT_FALSE
          ;
 
-function: function_header command_block
+function: function_header command_block ';'
     ;
 
 function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' type
     ;
 
-maybe_function_header_params: function_header_params
+maybe_function_header_params: TK_IDENTIFIER '=' KW_CHAR function_header_params
+    | TK_IDENTIFIER '=' KW_BOOL function_header_params
+    | TK_IDENTIFIER '=' KW_INT function_header_params
+    | TK_IDENTIFIER '=' KW_FLOAT function_header_params
     |
     ;
     
-function_header_params: TK_IDENTIFIER '=' KW_CHAR ',' maybe_function_header_params
-    | TK_IDENTIFIER '=' KW_BOOL ',' maybe_function_header_params
-    | TK_IDENTIFIER '=' KW_INT ',' maybe_function_header_params
-    | TK_IDENTIFIER '=' KW_FLOAT ',' maybe_function_header_params
+function_header_params: ',' TK_IDENTIFIER '=' KW_CHAR maybe_function_header_params
+    | ',' TK_IDENTIFIER '=' KW_BOOL maybe_function_header_params
+    | ',' TK_IDENTIFIER '=' KW_INT maybe_function_header_params
+    | ',' TK_IDENTIFIER '=' KW_FLOAT maybe_function_header_params
+    |
     ;
 
-command_block: '{' command_seq '}'
+command_block: '{' command_seq
     ;
 
 command_seq: command command_seq
-    |
+    | '}'
     ;
 
-command: command_attr
+command: TK_IDENTIFIER '=' expr
+    | TK_IDENTIFIER '[' expr ']' '=' expr
     | KW_READ TK_IDENTIFIER
     | KW_RETURN expr
-    | command_flow
+    | KW_IF '(' expr ')' KW_THEN command maybe_else
+    | KW_WHILE '(' expr ')' command
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
+    | KW_PRINT LIT_STRING maybe_print_elems
+    | KW_PRINT expr maybe_print_elems
     | command_block
-    | command_print
-    ;
-
-command_print:  KW_PRINT print_elem maybe_print_elems
-    ;
-
-print_elem: LIT_STRING
-    | expr
-    ;
-
-maybe_print_elems: ',' print_elem maybe_print_elems
     |
     ;
 
-command_attr: TK_IDENTIFIER '=' expr
-    | TK_IDENTIFIER '[' expr ']' '=' expr
-    ;
-
-command_flow: KW_IF '(' expr ')' KW_THEN command maybe_else
-    | KW_WHILE '(' expr ')' command
-    | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
+maybe_print_elems: ',' LIT_STRING maybe_print_elems
+    | ',' expr maybe_print_elems
+    |
     ;
 
 maybe_else: KW_ELSE command
@@ -180,13 +175,10 @@ expr: expr OPERATOR_PLUS expr
     | expr OPERATOR_AND expr
     | '(' expr ')'
     | OPERATOR_NOT expr
-    | TK_IDENTIFIER opt_array_index_or_function_call
+    | TK_IDENTIFIER
+    | TK_IDENTIFIER '[' expr ']'
+    | TK_IDENTIFIER '(' function_call_args ')'
     | lit
-    ;
-
-opt_array_index_or_function_call: '[' expr ']' 
-    | '(' function_call_args ')'
-    |
     ;
 
 function_call_args: expr

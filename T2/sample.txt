@@ -30,6 +30,8 @@ main () = int
     print "."
   print "\n"
 
+  if(a==2) then else
+
   if (a==15) then 
     print "A=15\n"
 
