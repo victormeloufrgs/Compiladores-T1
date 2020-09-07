@@ -22,7 +22,7 @@ int main(int argc, char ** argv) {
     
     fprintf(stderr,"Compilation success!\n");
     
-    // hashPrint();
+    //hashPrint();
     
     exit(0);
 }

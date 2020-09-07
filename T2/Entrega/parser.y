@@ -69,88 +69,73 @@ declaration_list: declaration declaration_list
     |
     ;
 
-declaration: global_var_declaration | function
+declaration: var_declaration | function_declaration
     ;
     
-global_var_declaration: TK_IDENTIFIER '=' type global_var_or_vet_declaration ';'
+var_declaration: TK_IDENTIFIER '=' type_and_value ';'
+    ;
+    
+type_and_value: type ':' lit
+    | type '[' LIT_INTEGER ']' vet_maybe_value
     ;
 
-global_var_or_vet_declaration: ':' lit
-    | '[' LIT_INTEGER ']' vet_maybe_value
+
+type: KW_CHAR | KW_BOOL | KW_INT | KW_FLOAT
     ;
 
-type: KW_CHAR
-    | KW_BOOL
-    | KW_INT
-    | KW_FLOAT
-    ;
-
-lit: LIT_CHAR
-    | LIT_INTEGER
-    | LIT_FLOAT
-    | LIT_TRUE
-    | LIT_FALSE
+lit: LIT_CHAR | LIT_INTEGER | LIT_FLOAT | LIT_TRUE | LIT_FALSE
     ;
 
 vet_maybe_value: ':' vet_value
     |
     ;
 
-vet_value: LIT_INTEGER vet_value 
-         | LIT_FLOAT vet_value 
-         | LIT_CHAR vet_value
-         | LIT_TRUE vet_value
-         | LIT_FALSE vet_value
-         | LIT_INTEGER
-         | LIT_FLOAT
-         | LIT_CHAR
-         | LIT_TRUE
-         | LIT_FALSE
-         ;
-
-function: function_header command_block ';'
+vet_value: lit vet_value
+    | lit
     ;
 
-function_header: TK_IDENTIFIER '(' maybe_function_header_params ')' '=' type
+function_declaration: TK_IDENTIFIER '(' parameters ')' '=' type command_block ';'
     ;
 
-maybe_function_header_params: TK_IDENTIFIER '=' KW_CHAR function_header_params
-    | TK_IDENTIFIER '=' KW_BOOL function_header_params
-    | TK_IDENTIFIER '=' KW_INT function_header_params
-    | TK_IDENTIFIER '=' KW_FLOAT function_header_params
+parameters: parameter_list
     |
     ;
     
-function_header_params: ',' TK_IDENTIFIER '=' KW_CHAR maybe_function_header_params
-    | ',' TK_IDENTIFIER '=' KW_BOOL maybe_function_header_params
-    | ',' TK_IDENTIFIER '=' KW_INT maybe_function_header_params
-    | ',' TK_IDENTIFIER '=' KW_FLOAT maybe_function_header_params
+parameter_list: param ',' parameter_list | param
+    ;
+
+param: TK_IDENTIFIER '=' type
+    ;
+
+command_block: '{' command_seq '}'
+    ;
+
+command_seq: command_seq command
     |
     ;
 
-command_block: '{' command_seq
-    ;
-
-command_seq: command command_seq
-    | '}'
-    ;
-
-command: TK_IDENTIFIER '=' expr
-    | TK_IDENTIFIER '[' expr ']' '=' expr
+command: command_attribute
     | KW_READ TK_IDENTIFIER
     | KW_RETURN expr
-    | KW_IF '(' expr ')' KW_THEN command maybe_else
-    | KW_WHILE '(' expr ')' command
-    | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
-    | KW_PRINT LIT_STRING maybe_print_elems
-    | KW_PRINT expr maybe_print_elems
+    | KW_PRINT print_list
+    | command_control
     | command_block
     |
     ;
 
-maybe_print_elems: ',' LIT_STRING maybe_print_elems
-    | ',' expr maybe_print_elems
-    |
+command_attribute: TK_IDENTIFIER '=' expr
+    | TK_IDENTIFIER '[' expr ']' '=' expr
+    ;
+
+print_list: print_element ',' print_list | print_element
+    ;
+
+print_element: LIT_STRING | expr
+    ;
+
+command_control: KW_IF '(' expr ')' KW_THEN command maybe_else
+    | KW_WHILE '(' expr ')' command
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command
     ;
 
 maybe_else: KW_ELSE command
@@ -161,7 +146,16 @@ expr_cont_list: ',' expr expr_cont_list
     |
     ;
 
-expr: expr OPERATOR_PLUS expr
+expr: bin_expr
+    | '(' expr ')'
+    | OPERATOR_NOT expr
+    | TK_IDENTIFIER
+    | TK_IDENTIFIER '[' expr ']'
+    | TK_IDENTIFIER '(' function_call_args ')'
+    | lit
+    ;
+
+bin_expr: expr OPERATOR_PLUS expr
     | expr OPERATOR_MINUS expr
     | expr OPERATOR_MULT expr
     | expr OPERATOR_DIV expr
@@ -173,17 +167,11 @@ expr: expr OPERATOR_PLUS expr
     | expr OPERATOR_DIF expr
     | expr OPERATOR_OR expr
     | expr OPERATOR_AND expr
-    | '(' expr ')'
-    | OPERATOR_NOT expr
-    | TK_IDENTIFIER
-    | TK_IDENTIFIER '[' expr ']'
-    | TK_IDENTIFIER '(' function_call_args ')'
-    | lit
     ;
 
 function_call_args: expr
-        | expr ',' function_call_args
-        ;
+    | expr ',' function_call_args
+    ;
 
 %%
 
