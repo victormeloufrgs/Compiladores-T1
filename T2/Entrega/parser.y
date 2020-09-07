@@ -55,10 +55,14 @@ Matrícula:  00285640
 
 %token TOKEN_ERROR
 
+%left TK_IDENTIFIER LIT_CHAR LIT_INTEGER LIT_FLOAT LIT_TRUE LIT_FALSE
+
 %left OPERATOR_OR OPERATOR_AND
 %left OPERATOR_LE OPERATOR_LT OPERATOR_GE OPERATOR_GT OPERATOR_EQ OPERATOR_DIF OPERATOR_NOT
 %left OPERATOR_PLUS OPERATOR_MINUS
 %left OPERATOR_MULT OPERATOR_DIV
+%left '[' ']'
+%left '(' ')'
 
 %%
 
@@ -67,8 +71,11 @@ program: global_var_declaration ';' program
     |
     ;
 
-global_var_declaration: TK_IDENTIFIER '=' type ':' lit 
-    | vet_declaration
+global_var_declaration: TK_IDENTIFIER '=' type global_var_or_vet_declaration
+    ;
+
+global_var_or_vet_declaration: ':' lit
+    | '[' LIT_INTEGER ']' vet_maybe_value
     ;
 
 type: KW_CHAR
@@ -83,10 +90,6 @@ lit: LIT_CHAR
     | LIT_TRUE
     | LIT_FALSE
     ;
-
-vet_declaration: TK_IDENTIFIER '=' vet_type;
-
-vet_type: type '[' LIT_INTEGER ']' vet_maybe_value;
 
 vet_maybe_value: ':' vet_value
     |
@@ -114,8 +117,10 @@ maybe_function_header_params: function_header_params
     |
     ;
     
-function_header_params: TK_IDENTIFIER '=' type ',' function_header_params
-    | TK_IDENTIFIER '=' type
+function_header_params: TK_IDENTIFIER '=' KW_CHAR ',' maybe_function_header_params
+    | TK_IDENTIFIER '=' KW_BOOL ',' maybe_function_header_params
+    | TK_IDENTIFIER '=' KW_INT ',' maybe_function_header_params
+    | TK_IDENTIFIER '=' KW_FLOAT ',' maybe_function_header_params
     ;
 
 command_block: '{' command_seq '}'
@@ -131,7 +136,6 @@ command: command_attr
     | command_flow
     | command_block
     | command_print
-    |
     ;
 
 command_print:  KW_PRINT print_elem maybe_print_elems
@@ -162,33 +166,27 @@ expr_cont_list: ',' expr expr_cont_list
     |
     ;
 
-expr: expr bin_operator expr
+expr: expr OPERATOR_PLUS expr
+    | expr OPERATOR_MINUS expr
+    | expr OPERATOR_MULT expr
+    | expr OPERATOR_DIV expr
+    | expr OPERATOR_LE expr
+    | expr OPERATOR_LT expr
+    | expr OPERATOR_GE expr
+    | expr OPERATOR_GT expr
+    | expr OPERATOR_EQ expr
+    | expr OPERATOR_DIF expr
+    | expr OPERATOR_OR expr
+    | expr OPERATOR_AND expr
     | '(' expr ')'
     | OPERATOR_NOT expr
-    | TK_IDENTIFIER opt_array_index
+    | TK_IDENTIFIER opt_array_index_or_function_call
     | lit
-    | function_call
     ;
 
-opt_array_index: '[' expr ']' 
-    | 
-    ;
-
-bin_operator: OPERATOR_PLUS
-            | OPERATOR_MINUS
-            | OPERATOR_MULT
-            | OPERATOR_DIV
-            | OPERATOR_LE
-            | OPERATOR_LT      
-            | OPERATOR_GE      
-            | OPERATOR_GT      
-            | OPERATOR_EQ      
-            | OPERATOR_DIF     
-            | OPERATOR_OR     
-            | OPERATOR_AND
-            ;
-
-function_call: TK_IDENTIFIER '(' function_call_args ')'
+opt_array_index_or_function_call: '[' expr ']' 
+    | '(' function_call_args ')'
+    |
     ;
 
 function_call_args: expr

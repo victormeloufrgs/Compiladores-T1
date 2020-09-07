@@ -1,0 +1,1 @@
+while read -r line; do echo "Testing($line)"; echo "$line" > tempInput.txt; ./Entrega/etapa2 tempInput.txt; rm tempInput.txt; done < inputErrors.txt
