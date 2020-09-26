@@ -1,0 +1,3 @@
+myFunction (x = int, n = int ) = int {
+    print 5 + 2
+};
