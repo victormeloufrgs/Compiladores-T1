@@ -29,6 +29,9 @@ function2 (p1 = int, p2 = bool) = bool {
     v[50 ^ y] = 1 + 2 * 34 / 5
     while (5+2 > 3)
         print 33
+
+    loop(v: 2, v<2, v + 1)
+        print 2
     
     print 2
     print a + 25 ^ myFunction(34, myFunction(43))
