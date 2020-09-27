@@ -53,8 +53,6 @@ void *astPrint(AST *node, int level) {
         case AST_FUNC_CALL_ARGS: fprintf(stderr, "AST_FUNC_CALL_ARGS"); break;    
         case AST_FUNC_CALL_ARGS_EXT: fprintf(stderr, "AST_FUNC_CALL_ARGS_EXT"); break;
 
-        case AST_EXPR_CONT_LIST: fprintf(stderr, "AST_EXPR_CONT_LIST"); break; 
-
         case AST_MAYBE_ELSE: fprintf(stderr, "AST_MAYBE_ELSE"); break;          
         case AST_LOOP: fprintf(stderr, "AST_LOOP"); break;                
         case AST_WHILE: fprintf(stderr, "AST_WHILE"); break;               
@@ -99,4 +97,393 @@ void *astPrint(AST *node, int level) {
     return 0;
 }
 
-// END OF FILE
+char* decompileTree(AST *ast) {
+    if (ast) {
+        switch (ast->type) {
+            case AST_SYMBOL_IDENTIFIER: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            }
+
+            case AST_SYMBOL_STRING: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            }
+
+            case AST_SYMBOL_CHAR: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            }
+
+            case AST_SYMBOL_INTEGER: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            }
+
+            case AST_SYMBOL_FLOAT: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            }
+
+            case AST_SYMBOL_TRUE: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            }
+
+            case AST_SYMBOL_FALSE: {
+                char *buffer = (char *) calloc(strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "%s", ast->symbol->text);
+                return buffer;
+            } 
+
+            case AST_PLUS: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s + %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_MINUS: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s - %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_MULT: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s * %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_DIV: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s / %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_LE: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(5 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s <= %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_LT: {
+                
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s < %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_GE: {
+                
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(5 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s >= %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_GT: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s > %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_EQ: {
+                
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(5 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s == %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_DIF: {
+                
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(5 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s != %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_OR: {
+                
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s | %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_AND: {
+                
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s ^ %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_NOT: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(2 + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "!%s", son_0_txt);
+                return buffer;
+            }
+
+            case AST_ARRAY_CALL: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(4 + strlen(ast->symbol->text) + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "%s [%s]", ast->symbol->text, son_0_txt);
+                return buffer;
+            }
+
+            case AST_FUNC_CALL: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(4 + strlen(ast->symbol->text) + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "%s (%s)", ast->symbol->text, son_0_txt);
+                return buffer;
+            }
+
+            case AST_FUNC_CALL_ARGS: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(2 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_FUNC_CALL_ARGS_EXT: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, ", %s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_MAYBE_ELSE: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(6 + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "else %s", son_0_txt);
+                return buffer;
+            }
+
+            case AST_LOOP: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *son_2_txt = decompileTree(ast->son[2]);
+                char *son_3_txt = decompileTree(ast->son[3]);
+                char *buffer = (char *) calloc(15 + strlen(ast->symbol->text) + strlen(son_0_txt) + strlen(son_1_txt) + strlen(son_2_txt) + strlen(son_3_txt), sizeof(char));
+                sprintf(buffer, "loop (%s: %s, %s, %s) %s", ast->symbol->text, son_0_txt, son_1_txt, son_2_txt, son_3_txt);
+                return buffer;
+            }
+
+            case AST_WHILE: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(10 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "while (%s) %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_IF_THEN: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *son_2_txt = decompileTree(ast->son[2]);
+                char *buffer = (char *) calloc(13 + strlen(son_0_txt) + strlen(son_1_txt) + strlen(son_2_txt), sizeof(char));
+                sprintf(buffer, "if (%s) then %s %s", son_0_txt, son_1_txt, son_2_txt);
+                return buffer;
+            }
+
+
+            case AST_PRINT_EXTRA_ELEMS: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, ", %s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_PRINT_LIST: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(2 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_PRINT: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(7 + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "print %s", son_0_txt);
+                return buffer;
+            }
+
+            case AST_ATTR_ARRAY: {
+                char* son_0_txt = decompileTree(ast->son[0]);
+                char* son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(6 +strlen(son_0_txt) + strlen(ast->symbol->text) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s[%s] = %s", ast->symbol->text, son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_ATTR: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(4 + strlen(ast->symbol->text) + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "%s = %s", ast->symbol->text, son_0_txt);
+                return buffer;
+            }
+
+            case AST_RETURN: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(8 + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "return %s", son_0_txt);
+                return buffer;
+            }
+
+            case AST_READ: {
+                char *buffer = (char *) calloc(6 + strlen(ast->symbol->text), sizeof(char));
+                sprintf(buffer, "read %s", ast->symbol->text);
+                return buffer;
+            }
+
+
+            case AST_CMD_SEQ: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(2 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s\n%s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_CMD_BLOCK: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(5 + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "{\n%s\n}", son_0_txt);
+                return buffer;
+            }
+
+            case AST_PARAM: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(4 + strlen(ast->symbol->text) + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "%s = %s", ast->symbol->text, son_0_txt);
+                return buffer;
+            }
+
+            case AST_PARAM_LIST_EXT: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(4 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, ", %s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_PARAM_LIST: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(2 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_VET_VALUES: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(2 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_VALUE: {
+                char *son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(3 + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, ": %s", son_0_txt);
+                return buffer;
+            }
+
+            case AST_KW_FLOAT: {
+                return "float";
+            }
+
+            case AST_KW_INT: {
+                return "int";
+            }
+
+            case AST_KW_BOOL: {
+                return "bool";
+            }
+
+            case AST_KW_CHAR: {
+                return "char";
+            }
+
+            case AST_TYPE_AND_VALUE: {
+                char* son_0_txt = decompileTree(ast->son[0]);
+                char* son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(3 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s: %s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            case AST_TYPE_AND_VALUE_ARRAY: {
+                char* son_0_txt = decompileTree(ast->son[0]);
+                char* son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(3 +strlen(son_0_txt) + strlen(ast->symbol->text) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s[%s]%s", son_0_txt, ast->symbol->text, son_1_txt);
+                return buffer;
+            }
+
+            case AST_DECL_FUNC: {
+                char* son_0_txt = decompileTree(ast->son[0]);
+                char* son_1_txt = decompileTree(ast->son[1]);
+                char* son_2_txt = decompileTree(ast->son[2]);
+                char *buffer = (char *) calloc(10 + strlen(ast->symbol->text) + strlen(son_0_txt) + strlen(son_1_txt) + strlen(son_2_txt), sizeof(char));
+                sprintf(buffer, "%s ( %s) = %s %s;\n", ast->symbol->text, son_0_txt, son_1_txt, son_2_txt);
+                return buffer;
+            }
+
+            case AST_DECL_VAR: {
+                char* son_0_txt = decompileTree(ast->son[0]);
+                char *buffer = (char *) calloc(6 + strlen(ast->symbol->text) + strlen(son_0_txt), sizeof(char));
+                sprintf(buffer, "%s = %s;\n", ast->symbol->text, son_0_txt);
+                return buffer;
+            }
+
+            case AST_DECL_LIST: {
+                char* son_0_txt = decompileTree(ast->son[0]);
+                char* son_1_txt = decompileTree(ast->son[1]);
+                char *buffer = (char *) calloc(1 + strlen(son_0_txt) + strlen(son_1_txt), sizeof(char));
+                sprintf(buffer, "%s%s", son_0_txt, son_1_txt);
+                return buffer;
+            }
+
+            default:
+                return "";
+
+        }
+
+        return "";
+    } else {
+        return "";
+    }
+}

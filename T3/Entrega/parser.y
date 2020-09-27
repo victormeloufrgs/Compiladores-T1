@@ -61,7 +61,6 @@ Matrícula:  00285640
 %type<ast> expr
 %type<ast> lit
 %type<ast> bin_expr
-%type<ast> expr_cont_list
 %type<ast> command
 %type<ast> command_seq
 %type<ast> command_block
@@ -91,19 +90,19 @@ Matrícula:  00285640
 
 %%
 
-program: declaration_list                           { astPrint($1, 0); }
+program: declaration_list                           { tree = $1; }
     ;
 
 declaration_list: declaration declaration_list          { $$ = astCreate(AST_DECL_LIST, 0, $1, $2, 0, 0); }
     |                                                   { $$ = 0; }
     ;
 
-declaration: TK_IDENTIFIER '=' type_and_value ';'                   { $$ = astCreate(AST_DECL_VAR, $1, $3, 0, 0, 0); }
-    | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block ';'   { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); }
+declaration: TK_IDENTIFIER '=' type_and_value ';'                       { $$ = astCreate(AST_DECL_VAR, $1, $3, 0, 0, 0); }
+    | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block ';'     { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); }
     ;
     
-type_and_value: type ':' lit                    { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
-    | type '[' LIT_INTEGER ']' vet_maybe_value  { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, $3, $1, $5, 0, 0); }
+type_and_value: type ':' lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
+    | type '[' LIT_INTEGER ']' vet_maybe_value                          { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, $3, $1, $5, 0, 0); }
     ;
 
 
@@ -128,11 +127,11 @@ vet_value: lit vet_value                        { $$ = astCreate(AST_VET_VALUES,
     | lit                                       { $$ = $1; }
     ;
 
-maybe_params: param_list                { $$ = $1; }
+maybe_params: param_list                        { $$ = $1; }
     |                                           { $$ = 0; }
     ;
     
-param_list: param param_list_ext            { $$ = astCreate(AST_PARAM_LIST, 0, $1, $2, 0, 0); }
+param_list: param param_list_ext                { $$ = astCreate(AST_PARAM_LIST, 0, $1, $2, 0, 0); }
     ;
 
 param_list_ext: ',' param param_list_ext        { $$ = astCreate(AST_PARAM_LIST_EXT, 0, $2, $3, 0, 0); }
@@ -158,32 +157,28 @@ command: command_attribute                      { $$ = $1; }
     |                                           { $$ = 0; }
     ;
 
-command_attribute: TK_IDENTIFIER '=' expr           { $$ = astCreate(AST_ATTR, $1, $3, 0, 0, 0); }
-    | TK_IDENTIFIER '[' expr ']' '=' expr           { $$ = astCreate(AST_ATTR_ARRAY, $1, $3, $6, 0, 0); }
+command_attribute: TK_IDENTIFIER '=' expr               { $$ = astCreate(AST_ATTR, $1, $3, 0, 0, 0); }
+    | TK_IDENTIFIER '[' expr ']' '=' expr               { $$ = astCreate(AST_ATTR_ARRAY, $1, $3, $6, 0, 0); }
     ;
 
-print_list:  print_elem print_extra_elems           { $$ = astCreate(AST_PRINT_LIST, 0, $1, $2, 0, 0); }
+print_list:  print_elem print_extra_elems               { $$ = astCreate(AST_PRINT_LIST, 0, $1, $2, 0, 0); }
     ;
 
 print_extra_elems: ',' print_elem print_extra_elems     { $$ = astCreate(AST_PRINT_EXTRA_ELEMS, 0, $2, $3, 0, 0); }
     |                                                   { $$ = 0; }
     ;
 
-print_elem: LIT_STRING          { $$ = astCreate(AST_SYMBOL_STRING, $1, 0, 0, 0, 0); }
-    | expr                      { $$ = $1; }
+print_elem: LIT_STRING                                  { $$ = astCreate(AST_SYMBOL_STRING, $1, 0, 0, 0, 0); }
+    | expr                                              { $$ = $1; }
     ;
 
 command_control: KW_IF '(' expr ')' KW_THEN command maybe_else              { $$ = astCreate(AST_IF_THEN, 0, $3, $6, $7, 0); }
     | KW_WHILE '(' expr ')' command                                         { $$ = astCreate(AST_WHILE, 0, $3, $5, 0, 0); }
-    | KW_LOOP '(' TK_IDENTIFIER ':' expr expr_cont_list ')' command         { $$ = astCreate(AST_LOOP, $3, $5, $6, $8, 0); }
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr ',' expr ',' expr ')' command      { $$ = astCreate(AST_LOOP, $3, $5, $7, $9, $11); }
     ;
 
-maybe_else: KW_ELSE command         { $$ = astCreate(AST_MAYBE_ELSE, 0, $2, 0, 0, 0); }
-    |                               { $$ = 0; }
-    ;
-
-expr_cont_list: ',' expr expr_cont_list         { $$ = astCreate(AST_EXPR_CONT_LIST, 0, $2, $3, 0, 0); }
-    |                                           { $$ = 0; }
+maybe_else: KW_ELSE command                             { $$ = astCreate(AST_MAYBE_ELSE, 0, $2, 0, 0, 0); }
+    |                                                   { $$ = 0; }
     ;
 
 expr: bin_expr                                          { $$ = $1; }
@@ -195,18 +190,18 @@ expr: bin_expr                                          { $$ = $1; }
     | lit                                               { $$ = $1; }
     ;
 
-bin_expr: expr OPERATOR_PLUS expr           { $$ = astCreate(AST_PLUS, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_MINUS expr              { $$ = astCreate(AST_MINUS, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_MULT expr               { $$ = astCreate(AST_MULT, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_DIV expr                { $$ = astCreate(AST_DIV, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_LE expr                 { $$ = astCreate(AST_LE, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_LT expr                 { $$ = astCreate(AST_LT, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_GE expr                 { $$ = astCreate(AST_GE, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_GT expr                 { $$ = astCreate(AST_GT, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_EQ expr                 { $$ = astCreate(AST_EQ, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_DIF expr                { $$ = astCreate(AST_DIF, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_OR expr                 { $$ = astCreate(AST_OR, 0, $1, $3, 0, 0); }
-    | expr OPERATOR_AND expr                { $$ = astCreate(AST_AND, 0, $1, $3, 0, 0); }
+bin_expr: expr OPERATOR_PLUS expr                   { $$ = astCreate(AST_PLUS, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_MINUS expr                      { $$ = astCreate(AST_MINUS, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_MULT expr                       { $$ = astCreate(AST_MULT, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_DIV expr                        { $$ = astCreate(AST_DIV, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_LE expr                         { $$ = astCreate(AST_LE, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_LT expr                         { $$ = astCreate(AST_LT, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_GE expr                         { $$ = astCreate(AST_GE, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_GT expr                         { $$ = astCreate(AST_GT, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_EQ expr                         { $$ = astCreate(AST_EQ, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_DIF expr                        { $$ = astCreate(AST_DIF, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_OR expr                         { $$ = astCreate(AST_OR, 0, $1, $3, 0, 0); }
+    | expr OPERATOR_AND expr                        { $$ = astCreate(AST_AND, 0, $1, $3, 0, 0); }
     ;
 
 

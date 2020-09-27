@@ -5,15 +5,27 @@ Matrícula:  00285640
 
 #include <stdio.h>
 #include "hash.h"
+#include "ast.h"
 
 extern FILE *yyin;
 int yyparse();
 
+int writeStringToFile(char *filePath, char *string) {
+	FILE* f;
+	if ((f = fopen(filePath, "w")) != NULL) {
+		fprintf(f, "%s", string);
+		return 1;
+	} else {
+		fprintf(stderr, "ERROR: Couldn't open %s\n", filePath);
+		exit(1);
+	}
+}
+
 int main(int argc, char ** argv) {
     hashInit();
     
-    if (argc<2) {
-        fprintf(stderr,"");
+    if (argc<3) {
+        fprintf(stderr,"Error: argumentos inválidos\n");
         exit(1);
     }
 
@@ -25,10 +37,14 @@ int main(int argc, char ** argv) {
     }
 
     yyparse();
+
+    astPrint(tree, 0);
+
+    writeStringToFile(argv[2], decompileTree(tree));
     
     fprintf(stderr,"Compilation success!\n");
     
-    hashPrint();
+    // hashPrint();
     
     exit(0);
 }

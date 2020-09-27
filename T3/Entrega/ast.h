@@ -38,57 +38,53 @@
 #define AST_FUNC_CALL_ARGS              23
 #define AST_FUNC_CALL_ARGS_EXT          24
 
-// expression list:
-
-#define AST_EXPR_CONT_LIST              25
-
 // control flow:
 
-#define AST_MAYBE_ELSE                  26
-#define AST_LOOP                        27
-#define AST_WHILE                       28
-#define AST_IF_THEN                     29
+#define AST_MAYBE_ELSE                  25
+#define AST_LOOP                        26
+#define AST_WHILE                       27
+#define AST_IF_THEN                     28
 
 // command:
 
-#define AST_PRINT_EXTRA_ELEMS           30
-#define AST_PRINT_LIST                  31
-#define AST_ATTR_ARRAY                  32
-#define AST_ATTR                        33
-#define AST_PRINT                       34
-#define AST_RETURN                      35
-#define AST_READ                        36
-#define AST_CMD_SEQ                     37
-#define AST_CMD_BLOCK                   38
+#define AST_PRINT_EXTRA_ELEMS           29
+#define AST_PRINT_LIST                  30
+#define AST_ATTR_ARRAY                  31
+#define AST_ATTR                        32
+#define AST_PRINT                       33
+#define AST_RETURN                      34
+#define AST_READ                        35
+#define AST_CMD_SEQ                     36
+#define AST_CMD_BLOCK                   37
 
 // params:
 
-#define AST_PARAM                       39
-#define AST_PARAM_LIST_EXT              40
-#define AST_PARAM_LIST                  41
+#define AST_PARAM                       38
+#define AST_PARAM_LIST_EXT              39
+#define AST_PARAM_LIST                  40
 
 // values:
 
-#define AST_VET_VALUES                  42
-#define AST_VALUE                       43
+#define AST_VET_VALUES                  41
+#define AST_VALUE                       42
 
 // keywords:
 
-#define AST_KW_FLOAT                    44
-#define AST_KW_INT                      45
-#define AST_KW_BOOL                     46
-#define AST_KW_CHAR                     47
+#define AST_KW_FLOAT                    43
+#define AST_KW_INT                      44
+#define AST_KW_BOOL                     45
+#define AST_KW_CHAR                     46
 
 // types and values: 
 
-#define AST_TYPE_AND_VALUE              48
-#define AST_TYPE_AND_VALUE_ARRAY        49
+#define AST_TYPE_AND_VALUE              47
+#define AST_TYPE_AND_VALUE_ARRAY        48
 
 // declarations:
 
-#define AST_DECL_FUNC                   50
-#define AST_DECL_VAR                    51
-#define AST_DECL_LIST                   52
+#define AST_DECL_FUNC                   49
+#define AST_DECL_VAR                    50
+#define AST_DECL_LIST                   51
 
 typedef struct astnode
 { 
@@ -99,6 +95,9 @@ typedef struct astnode
 
 AST *astCreate(int type, HASH_NODE *symbol, AST* s0, AST* s1, AST* s2, AST* s3);
 void *astPrint(AST *node, int level);
+char* decompileTree(AST *ast);
+
+AST *tree;
 
 #endif
 
