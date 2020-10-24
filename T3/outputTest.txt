@@ -1,0 +1,16 @@
+d = bool[34]: 0234 0.52 'c' FALSE TRUE;
+v1 = int[10]: 0 0 0 0 0 0 0 0 0 0;
+_232 = int[10]: 0 FFF A434 FFABC 0 4235 0 0 0 1253;
+mat = int[10];
+dasf3421_@asdf = int[10];
+myFunction ( x = int , n = int ) = int {
+
+v = myFunction (23 )
+{
+
+}
+};
+function2 ( ) = bool {
+
+v[50] = 1 + 1 * 1
+};

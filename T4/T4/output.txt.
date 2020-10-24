@@ -1,14 +1,6 @@
-a = int: 23;
-y = char: 'x';
-v = char: 'x';
-p1 = char: 'x';
-p2 = char: 'x';
-p3 = int: 23;
-myFunction ( p1 = int ) = int {
+v = int: 23;
+t = bool: FALSE;
+myFunction ( ) = int {
 
-print p1 
-};
-function2 ( p1 = int , p2 = bool ) = bool {
-
-y = 21232 + myFunction + a + 20
+print  + 23 + 32 
 };

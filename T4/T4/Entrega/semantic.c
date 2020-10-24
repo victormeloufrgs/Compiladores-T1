@@ -7,6 +7,7 @@ int SemanticErrors = 0;
 bool is_number(AST *son);
 bool is_ast_symbol(int type);
 
+// Verifica se uma variável/função/vetor já foi declarado antes.
 void check_and_set_declarations(AST *node) {
     int i, data_type;
     if (node == 0)
@@ -41,26 +42,30 @@ void check_and_set_declarations(AST *node) {
         fprintf(stderr,"node type is %d\n", node->son[1]->type);
         fprintf(stderr,"data_type is %d\n", data_type);
         break;
-    // case AST_DECL_LIST:
-    //     fprintf(stderr,"V4\n");
-    //     if(node->symbol)
-    //         if (node->symbol->type != SYMBOL_IDENTIFIER) {
-    //             fprintf(stderr,"Semantic ERROR: vector %s already declared\n", node->symbol->text);
-    //             ++ SemanticErrors;
-    //         }
-    //     node->symbol->type = SYMBOL_VECTOR;
-    //     break;
+    case AST_DECL_LIST:
+        // TODO
+        // fprintf(stderr,"V4\n");
+        // if(node->symbol)
+        //     if (node->symbol->type != SYMBOL_IDENTIFIER) {
+        //         fprintf(stderr,"Semantic ERROR: vector %s already declared\n", node->symbol->text);
+        //         ++ SemanticErrors;
+        //     }
+        // node->symbol->type = SYMBOL_VECTOR;
+
+        
+
+        break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
         check_and_set_declarations(node->son[i]);
 }
 
+// Verifica se os operandos usados numa operação são do tipo correto (ex: números para +, -, * e /, e bools pra ^, |, ==,...)
 void check_operands(AST *node) {
     int i, data_type;
     if (node == 0)
         return;
-
     switch (node->type) {
     case AST_PLUS: // IF OPERANDS ARE *NOT* VALID
         if (!is_number(node->son[0])) {         // TODO: ANTES DESSA CHAMADA, EH NECESSARIO PROCURAR O NODO SYMBOL E VER SE ELE EH VECTOR OU FUNCTION 
@@ -74,12 +79,46 @@ void check_operands(AST *node) {
         }
 
         break;
+    case AST_MINUS:
+       // TODO
+       break;
+    case AST_MULT:
+        // TODO
+        break;   
+    case AST_DIV:
+        // TODO
+        break;
+    case AST_GE:
+        // TODO
+        break;
+    case AST_GT:
+        // TODO
+        break;
+    case AST_LE:
+        // TODO
+        break;
+    case AST_LT:
+        // TODO
+        break;
+    case AST_EQ:
+        // TODO
+        break;
+    case AST_DIF:
+        // TODO
+        break;
+    case AST_OR:
+        // TODO
+        break;
+    case AST_AND:
+        // TODO
+        break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
-        check_operands(node->son[i]); 
+        check_operands(node->son[i]);
 }
 
+// retorna true se o nodo for do tipo número
 bool is_number(AST *son) {      
     return (
         son->type == AST_PLUS ||
@@ -90,6 +129,7 @@ bool is_number(AST *son) {
     );
 }
 
+// retorna true se o tipo for um SYMBOL
 bool is_ast_symbol(int type) {
     return (
         type == AST_SYMBOL_CHAR ||
@@ -102,6 +142,7 @@ bool is_ast_symbol(int type) {
     );
 }
 
+// Verifica se existem variáveis não declaradas
 void check_undeclared() {
     SemanticErrors += hash_check_undeclared();
 }
@@ -142,4 +183,4 @@ int get_datatype_of_type(int kw) {
 // PRECISA PERCORRER 2 LISTAS ENCADEADAS
 //      PRA ISSO, PRECISA MANTER UM PONTEIRO PARA APONTAR PRA AST PRA VER ONDE FOI O SÍMBOLO
 //      NO CHECK_AND_SET_DECLARATIONS, APONTAR PRO NODO AST_FUNC_DECL, PARA QUANDO CHEGAR NO NODO DE USO, PRECISA SÓ OLHAR PRA HASH QUE CONTÉM 2 PONTEIROS (1 PRA LISTA DE PARAMETROS, E 1 PRA LISTA DE ARGUMENTOS), E AÍ EH SOH VER SE SÃO COMPATIVOS.
-//      A HASH VAI TER QUE INCLUIR A AST.(precisa criar um protótipo de estrutura da ast pra dizer que a hash vai apontar pra uma estrutura que não conhece ainda).
+//      A HASH VAI TER QUE INCLUIR A AST.(precisa criar um protótipo de estrutura da ast na hash.h pra dizer que a hash vai apontar pra uma estrutura que não conhece ainda).
