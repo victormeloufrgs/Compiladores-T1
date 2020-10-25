@@ -1,6 +1,6 @@
 
-v1 = bool[10]: 0 0 0 0 0 0 0 0 0 0; 
+v1 = bool: FALSE; 
 
 funct () = bool {
-    print v1[2] | FALSE
+    v1 = TRUE
 };

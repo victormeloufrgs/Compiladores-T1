@@ -4,16 +4,26 @@
 
 int SemanticErrors = 0;
 
+void set_param_datatype(AST *node);
+void set_func_datatype(AST *node);
+void set_var_datatype(AST *node);
+
 bool is_number_operator(AST *node);
+bool is_boolean_operator(AST *node);
 bool is_number(AST *son);
-bool is_integer(AST *node);
 bool is_boolean(AST *son);
 
 void verify_scalar_operator(AST *node, char* operator_name);
 void verify_boolean_operator(AST *node, char* operator_name);
+void verify_attr_var_operator(AST *node);
 
 
-// Verifica se uma variável/função/vetor já foi declarado antes.
+int get_datatype_of_operator(AST *node);
+bool is_compatible_datatypes(int d1, int d2);
+bool is_valid_attr(int identifier_datatype, AST *expr);
+
+// Verifica se uma declaração já foi feita antes.
+// Se não foi declarado, seta o DATATYPE.
 void check_and_set_declarations(AST *node) {
     int i, data_type;
     if (node == 0)
@@ -21,47 +31,62 @@ void check_and_set_declarations(AST *node) {
 
     switch (node->type) {
     case AST_DECL_VAR: 
-        if(node->symbol)
-            if (node->symbol->type != SYMBOL_IDENTIFIER) {
-                fprintf(stderr,"SEMANTIC ERROR: variable %s already declared\n", node->symbol->text);
-                ++ SemanticErrors;
-            }
-    
-        switch(node->son[0]->type) {
-            case AST_TYPE_AND_VALUE:
-                node->symbol->type = SYMBOL_VARIABLE;
-                data_type = get_datatype_of_var_decl(node);
-                if (data_type != -1)
-                    node->symbol->datatype = data_type;
-                break;
-            case AST_TYPE_AND_VALUE_ARRAY:
-                node->symbol->type = SYMBOL_VECTOR;
-                data_type = get_datatype_of_vet_decl(node);
-                if (data_type != -1)
-                    node->symbol->datatype = data_type;
-                break;
-        }
-
+        set_var_datatype(node);
         break;
     case AST_DECL_FUNC:
-        if(node->symbol)
-            if (node->symbol->type != SYMBOL_IDENTIFIER) {
-                fprintf(stderr,"SEMANTIC ERROR: function %s already declared\n", node->symbol->text);
-                ++ SemanticErrors;
-            }
-        node->symbol->type = SYMBOL_FUNCTION;
-        data_type = get_datatype_of_func_decl(node);
-
-        if (data_type != -1)
-            node->symbol->datatype = data_type;
-
-        // fprintf(stderr,"node type is %d\n", node->son[1]->type);
-        // fprintf(stderr,"data_type is %d\n", data_type);
-        break;        
+        set_func_datatype(node);   
+        break;    
+    case AST_PARAM:
+        set_param_datatype(node);
+        break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
         check_and_set_declarations(node->son[i]);
+}
+
+void set_var_datatype(AST *node) {
+    int i, data_type;
+
+    if(node->symbol)
+        if (node->symbol->type != SYMBOL_IDENTIFIER) {
+            fprintf(stderr,"SEMANTIC ERROR: variable %s already declared\n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+
+    switch(node->son[0]->type) {
+        case AST_TYPE_AND_VALUE:
+            node->symbol->type = SYMBOL_VARIABLE;
+            data_type = get_datatype_of_var_decl(node);
+            if (data_type != -1)
+                node->symbol->datatype = data_type;
+            break;
+        case AST_TYPE_AND_VALUE_ARRAY:
+            node->symbol->type = SYMBOL_VECTOR;
+            data_type = get_datatype_of_vet_decl(node);
+            if (data_type != -1)
+                node->symbol->datatype = data_type;
+            break;
+    }
+}
+
+void set_func_datatype(AST *node) {
+    int i, data_type;
+    if(node->symbol)
+        if (node->symbol->type != SYMBOL_IDENTIFIER) {
+            fprintf(stderr,"SEMANTIC ERROR: function %s already declared\n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+
+    node->symbol->type = SYMBOL_FUNCTION;
+    data_type = get_datatype_of_func_decl(node);
+
+    if (data_type != -1)
+        node->symbol->datatype = data_type;
+}
+
+void set_param_datatype(AST *node) {
+
 }
 
 void check_vet_indexes(AST *node) {
@@ -71,14 +96,14 @@ void check_vet_indexes(AST *node) {
 
     switch (node->type) {
     case AST_TYPE_AND_VALUE_ARRAY: // Verificar se índice do vetor é um inteiro
-        if(!is_integer(node->son[1])) {
-            fprintf(stderr,"SEMANTIC ERROR: size of vector is not an integer\n");
+        if(!is_number(node->son[1])) {
+            fprintf(stderr,"SEMANTIC ERROR: size of vector is not a number\n");
                 ++ SemanticErrors;
         }
         break;
     case AST_ARRAY_CALL:
-        if(!is_integer(node->son[0])) { // garante que índice do vetor é inteiro
-            fprintf(stderr,"SEMANTIC ERROR: index of vector is not an integer\n");
+        if(!is_number(node->son[0])) { // garante que índice do vetor é inteiro
+            fprintf(stderr,"SEMANTIC ERROR: index of vector is not a numberr\n");
                 ++ SemanticErrors;
         }
         break;
@@ -165,17 +190,68 @@ void check_operands(AST *node) {
         break;
     case AST_NOT:
         verify_boolean_operator(node, "NOT");
+        break;
+    case AST_ATTR: // garantir que a atribuição de uma variável está atribuindo o tipo correto
+        // TODO
+
+        // verifica se operando esquerdo é diferente de uma variável
+        printf("\n\nSymbol type v1 == %s\n\n", getSymbolName(node->symbol->type));
+        
+        if (node->symbol->type != SYMBOL_VARIABLE) {
+            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to %s, that is not a variable (SYMBOL_VARIABLE) \n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+
+        // verifica se operando esquerdo tem mesmo datatype do operando direito
+        // if(!is_valid_attr(node->symbol->datatype, node->son[0])) {
+        //     fprintf(stderr,"SEMANTIC ERROR: trying to set a value to %s, but the type of expr is different \n", node->symbol->text);
+        //     ++ SemanticErrors;
+        // }
+
+        break;
+    case AST_ATTR_ARRAY: // garantir que a atribuição de um índice de vetor está atribuindo o tipo correto
+
+        // verifica se operando esquerdo é diferente de um índice de vetor
+        // verifica se operando esquerdo tem mesmo datatype do operando direito
+        break;
     }
 
     for (i = 0; i < MAX_SONS; i++)
         check_operands(node->son[i]);
 }
 
+// void verify_attr_var_operator(AST *node) {
+
+//     if (!is_attributable(node->son[0]) || node->symbol->datatype != get_datatype_of_attributable(node->son[0]->type)) {
+//         fprintf(stderr,"Semantic ERROR: invalid attribution to variable %s (the types are different) \n", node->symbol->text);
+//         ++ SemanticErrors;
+//     }
+// }
+
+// int is_attributable(AST *node) {
+//     return (
+//         is_boolean(node->type) ||
+//         is_number(node->type) ||
+//         node->type == AST_SYMBOL_STRING ||
+//         node->type == AST_SYMBOL_CHAR ||
+//         node->type == AST_SYMBOL_IDENTIFIER
+//     );
+// }
+
+// int get_datatype_of_attributable(AST *node) {
+//     int i;
+//     if(node == 0)
+//         return;
+//     for (i = 0; i < MAX_SONS; i++)
+//         check_operands(node->son[i]);
+    
+// }
+
 void verify_scalar_operator(AST *node, char* operator_name) {
     if (node->son[0] != 0 && !is_number(node->son[0])) {
-            fprintf(stderr,"Semantic ERROR: invalid left operand for %s \n", operator_name);
-            ++ SemanticErrors;
-        }
+        fprintf(stderr,"Semantic ERROR: invalid left operand for %s \n", operator_name);
+        ++ SemanticErrors;
+    }
 
     if (node->son[1] != 0 &&!is_number(node->son[1])) {
         fprintf(stderr,"Semantic ERROR: invalid right operand for %s \n", operator_name);
@@ -214,13 +290,6 @@ bool is_boolean(AST *son) {
     );
 }
 
-bool is_integer(AST *node) {
-    return (
-        node->type == AST_SYMBOL_INTEGER ||
-        (is_number_operator(node) && is_integer(node->son[0]) && is_integer(node->son[1]))
-    );
-}
-
 // retorna true se o nodo for do tipo número
 bool is_number(AST *son) {      
     return (
@@ -241,6 +310,20 @@ bool is_number_operator(AST *node) {
         node->type == AST_MINUS ||
         node->type == AST_MULT ||
         node->type == AST_DIV
+    );
+}
+
+bool is_boolean_operator(AST *node) {
+    return (
+        node->type == AST_LE ||
+        node->type == AST_LT ||
+        node->type == AST_GE ||
+        node->type == AST_GT ||
+        node->type == AST_EQ ||
+        node->type == AST_DIF ||
+        node->type == AST_OR ||
+        node->type == AST_AND ||
+        node->type == AST_NOT
     );
 }
 
@@ -273,20 +356,73 @@ int get_datatype_of_func_decl(AST *node) {
     return 0;
 }
 
-int get_datatype_of_type(int kw) {
-    switch (kw) {
-        case AST_KW_BOOL: return DATATYPE_BOOL;
-        case AST_KW_CHAR: return DATATYPE_CHAR;
-        case AST_KW_FLOAT: return DATATYPE_FLOAT;
-        case AST_KW_INT: return DATATYPE_INT;
+int get_datatype_of_operator(AST *node) {
+
+    if(node == 0)
+        return 0;
+    
+    if(get_datatype_of_type(node->type) != 0) {
+        return get_datatype_of_type(node->type);
+    }
+
+    int data_type_0, data_type_1;
+    if (node->son[0])
+        data_type_0 = get_datatype_of_operator(node->son[0]);
+
+    if (node->son[1])
+        data_type_1 = get_datatype_of_operator(node->son[1]);
+
+    if (is_compatible_datatypes(data_type_0, data_type_1)) {
+        if (data_type_0 == DATATYPE_INT || data_type_1 == DATATYPE_INT)
+            return DATATYPE_INT;
+
+        return data_type_0;
     }
 
     return 0;
 }
 
-//TODO: P/ TESTAR INDICES DO VETOR, TEMOS QUE GARANTIR QUE ELES SÃO NÚMEROS. SE HOUVER + ÍNDICES DO QUE O ESPECIFICADO, É VÁLIDO. 
+bool is_compatible_datatypes(int d1, int d2) {
+    if (d1 == 0 || d2 == 0)
+        return false;
+    
+    if (d1 == d2)
+        return true;
+
+    if (d1 == DATATYPE_INT && d2 == DATATYPE_FLOAT || 
+        d1 == DATATYPE_FLOAT && d2 == DATATYPE_INT)
+        return true;
+    
+    return false;
+}
+
+int get_datatype_of_type(int type) {
+    switch (type) {
+        case AST_KW_BOOL: return DATATYPE_BOOL;
+        case AST_KW_CHAR: return DATATYPE_CHAR;
+        case AST_KW_FLOAT: return DATATYPE_FLOAT;
+        case AST_KW_INT: return DATATYPE_INT;
+
+        case AST_SYMBOL_STRING: return DATATYPE_STRING;
+        case AST_SYMBOL_CHAR: return DATATYPE_CHAR;
+        case AST_SYMBOL_INTEGER: return DATATYPE_INT;
+        case AST_SYMBOL_FLOAT: return DATATYPE_FLOAT;
+        case AST_SYMBOL_TRUE: return DATATYPE_BOOL;
+        case AST_SYMBOL_FALSE: return DATATYPE_BOOL;
+    }
+
+    return 0;
+}
+
+bool is_valid_attr(int identifier_datatype, AST *expr) {
+    return (
+        is_compatible_datatypes(identifier_datatype, get_datatype_of_operator(expr))
+    );
+}
+
+//TODO: P/ TESTAR INDICES DO VETOR (ver se o tipo dos valores são os mesmos do tipo do vetor), TEMOS QUE GARANTIR QUE ELES SÃO NÚMEROS. SE HOUVER + ÍNDICES DO QUE O ESPECIFICADO, É VÁLIDO. 
 //  EH PRECISO PERCORRER BOTTOM-UP (PASSAR A RECURSÃO PRO INÍCIO DO MÉTODO, ANTES DO TESTE)
-//   CRAIR UM CAMPO NO AST PARA DISTINGUIR O FLOAT DO INT.
+//   CRIAR UM CAMPO NO AST PARA DISTINGUIR O FLOAT DO INT.
 
 // TODO: P VERIFICAR ARGUMENTOS DE CHAMADA DE FUNÇÃO
 // PRECISA PERCORRER 2 LISTAS ENCADEADAS
