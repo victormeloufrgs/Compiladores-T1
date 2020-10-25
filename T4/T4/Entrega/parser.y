@@ -109,7 +109,7 @@ declaration: TK_IDENTIFIER '=' type_and_value ';'                       { $$ = a
     ;
     
 type_and_value: type ':' lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
-    | type '[' LIT_INTEGER ']' vet_maybe_value                          { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, $3, $1, $5, 0, 0); }
+    | type '[' expr ']' vet_maybe_value                          { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, 0, $1, $3, $5, 0); }
     ;
 
 

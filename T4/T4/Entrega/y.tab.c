@@ -1422,7 +1422,7 @@ yyreduce:
 
   case 8: /* type_and_value: type '[' expr ']' vet_maybe_value  */
 #line 112 "parser.y"
-                                                                 { (yyval.ast) = astCreate(AST_TYPE_AND_VALUE_ARRAY, (yyvsp[-2].ast), (yyvsp[-4].ast), (yyvsp[0].ast), 0, 0); }
+                                                                 { (yyval.ast) = astCreate(AST_TYPE_AND_VALUE_ARRAY, 0, (yyvsp[-4].ast), (yyvsp[-2].ast), (yyvsp[0].ast), 0); }
 #line 1427 "y.tab.c"
     break;
 

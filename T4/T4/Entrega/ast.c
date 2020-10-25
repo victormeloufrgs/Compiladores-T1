@@ -448,8 +448,9 @@ char* decompileTree(AST *ast) {
             case AST_TYPE_AND_VALUE_ARRAY: {
                 char* son_0_txt = decompileTree(ast->son[0]);
                 char* son_1_txt = decompileTree(ast->son[1]);
-                char *buffer = (char *) calloc(3 +strlen(son_0_txt) + strlen(ast->symbol->text) + strlen(son_1_txt), sizeof(char));
-                sprintf(buffer, "%s[%s]%s", son_0_txt, ast->symbol->text, son_1_txt);
+                char* son_2_txt = decompileTree(ast->son[2]);
+                char *buffer = (char *) calloc(4 +strlen(son_0_txt) + strlen(son_1_txt) + strlen(son_2_txt), sizeof(char));
+                sprintf(buffer, "%s[%s]%s", son_0_txt, son_1_txt, son_2_txt);
                 return buffer;
             }
 
