@@ -1,5 +1,5 @@
-d = bool[23]: 0234 0.52 'c' FALSE TRUE;
+f = float: 0.0;
 funct ( ) = bool {
 
-print funct () 
+print f * 23.3 
 };

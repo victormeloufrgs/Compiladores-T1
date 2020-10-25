@@ -8,7 +8,6 @@ bool is_number_operator(AST *node);
 bool is_number(AST *son);
 bool is_integer(AST *node);
 bool is_boolean(AST *son);
-bool is_ast_symbol(int type);
 
 void verify_scalar_operator(AST *node, char* operator_name);
 void verify_boolean_operator(AST *node, char* operator_name);
@@ -173,7 +172,7 @@ void check_operands(AST *node) {
 }
 
 void verify_scalar_operator(AST *node, char* operator_name) {
-    if (node->son[0] != 0 && !is_number(node->son[0])) { // TODO: ANTES DESSA CHAMADA, EH NECESSARIO PROCURAR O NODO SYMBOL E VER SE ELE EH VECTOR OU FUNCTION 
+    if (node->son[0] != 0 && !is_number(node->son[0])) {
             fprintf(stderr,"Semantic ERROR: invalid left operand for %s \n", operator_name);
             ++ SemanticErrors;
         }
@@ -210,7 +209,7 @@ bool is_boolean(AST *son) {
         son->type == AST_DIF ||
         son->type == AST_NOT ||
         (son->symbol->type == SYMBOL_FUNCTION && son->symbol->datatype == DATATYPE_BOOL) ||
-        (is_ast_symbol(son->type) && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_BOOL)
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_BOOL)
         // TODO: FALTA TRATAR VETOR
     );
 }
@@ -223,14 +222,14 @@ bool is_integer(AST *node) {
 }
 
 // retorna true se o nodo for do tipo número
-bool is_number(AST *son) {      
+bool is_number(AST *son) {
     return (
         is_number_operator(son) ||
         son->type == AST_SYMBOL_INTEGER ||
         son->type == AST_SYMBOL_FLOAT ||
-        (son->type = AST_FUNC_CALL && son->symbol->datatype == DATATYPE_INT) ||
-        (is_ast_symbol(son->type) && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
-        (is_ast_symbol(son->type) && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT)
+        (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_INT) ||
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT)
         // TODO: FALTA TRATAR VETOR
     );
 }
@@ -241,19 +240,6 @@ bool is_number_operator(AST *node) {
         node->type == AST_MINUS ||
         node->type == AST_MULT ||
         node->type == AST_DIV
-    );
-}
-
-// retorna true se o tipo for um SYMBOL
-bool is_ast_symbol(int type) {
-    return (
-        type == AST_SYMBOL_CHAR ||
-        type == AST_SYMBOL_FALSE ||
-        type == AST_SYMBOL_FLOAT ||
-        type == AST_SYMBOL_IDENTIFIER ||
-        type == AST_SYMBOL_INTEGER ||
-        type == AST_SYMBOL_STRING ||
-        type == AST_SYMBOL_TRUE
     );
 }
 
