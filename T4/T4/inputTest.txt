@@ -1,7 +1,12 @@
 
-v = int: 23;
-t = bool: FALSE;
+d = bool[34+2] : 0234 0.52 'c' FALSE TRUE;
+
+funct () = bool {
+
+};
+
+f =bool :TRUE;
 
 myFunction () = int {
-    print t + 23 + 32
+    print ~d
 };
