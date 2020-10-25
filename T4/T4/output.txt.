@@ -1,5 +1,5 @@
-f = float: 0.0;
+v1 = bool[10]: 0 0 0 0 0 0 0 0 0 0;
 funct ( ) = bool {
 
-print f * 23.3 
+print v1 | FALSE 
 };

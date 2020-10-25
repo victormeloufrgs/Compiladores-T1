@@ -209,8 +209,8 @@ bool is_boolean(AST *son) {
         son->type == AST_DIF ||
         son->type == AST_NOT ||
         (son->symbol->type == SYMBOL_FUNCTION && son->symbol->datatype == DATATYPE_BOOL) ||
-        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_BOOL)
-        // TODO: FALTA TRATAR VETOR
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_BOOL) ||
+        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_BOOL)
     );
 }
 
@@ -222,15 +222,16 @@ bool is_integer(AST *node) {
 }
 
 // retorna true se o nodo for do tipo número
-bool is_number(AST *son) {
+bool is_number(AST *son) {      
     return (
         is_number_operator(son) ||
         son->type == AST_SYMBOL_INTEGER ||
         son->type == AST_SYMBOL_FLOAT ||
         (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_INT) ||
         (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
-        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT)
-        // TODO: FALTA TRATAR VETOR
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT) ||
+        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_INT) ||
+        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_FLOAT)
     );
 }
 
