@@ -4,9 +4,13 @@
 
 int SemanticErrors = 0;
 
-void set_param_datatype(AST *node);
 void set_func_datatype(AST *node);
 void set_var_datatype(AST *node);
+
+void check_var_decl_attr(AST *node);
+void check_array_decl_attr(AST *node);
+void check_array_values(int expected_datatype, AST *node);
+void check_array_decl_attr(AST *node);
 
 bool is_number_operator(AST *node);
 bool is_boolean_operator(AST *node);
@@ -36,9 +40,6 @@ void check_and_set_declarations(AST *node) {
     case AST_DECL_FUNC:
         set_func_datatype(node);   
         break;    
-    case AST_PARAM:
-        set_param_datatype(node);
-        break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
@@ -60,13 +61,63 @@ void set_var_datatype(AST *node) {
             data_type = get_datatype_of_var_decl(node);
             if (data_type != -1)
                 node->symbol->datatype = data_type;
+
+            check_var_decl_attr(node);
             break;
         case AST_TYPE_AND_VALUE_ARRAY:
             node->symbol->type = SYMBOL_VECTOR;
             data_type = get_datatype_of_vet_decl(node);
             if (data_type != -1)
                 node->symbol->datatype = data_type;
+
+            check_array_decl_attr(node);
             break;
+    }
+}
+
+//verifica se o tipo é igual a atribuição, se existir
+void check_var_decl_attr(AST *node) {
+    if(node->son[0]->son[1])
+        if(!is_compatible_datatypes(get_datatype_of_var_decl(node), get_datatype_of_type(node->son[0]->son[1]->type))) {
+            fprintf(stderr,"SEMANTIC ERROR: in variable %s declaration, tried to set invalid value\n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+}
+
+//verifica se cada um dos valores passados na lista são do tipo correto
+
+void check_array_decl_attr(AST *node) {
+
+    //saber qual o tipo correto
+    int expected_datatype = node->symbol->datatype;
+
+    if (node->son[0] && node->son[0]->son[2]) {
+        AST *vet_maybe_value = node->son[0]->son[2];
+        AST *vet_value = vet_maybe_value->son[0];
+
+        //percorrer a lista
+            //comparar o tipo de cada elemento com o tipo correto (is_compatible)
+        check_array_values(expected_datatype, vet_value);
+    }
+}
+
+void check_array_values(int expected_datatype, AST *node) {
+    if(node == 0)
+        return;
+
+    if (node->son[1])
+        check_array_values(expected_datatype, node->son[1]);
+    
+    if(node->son[0]) { // tem n elementos setados
+        if(!is_compatible_datatypes(expected_datatype, get_datatype_of_type(node->son[0]->type))){
+            fprintf(stderr,"SEMANTIC ERROR: tried to attribute invalid data type \'%s\' into vector position \n", node->son[0]->symbol->text);
+            ++ SemanticErrors;
+        }
+    } else { // só tem 1 elemento setado
+        if(!is_compatible_datatypes(expected_datatype, get_datatype_of_type(node->type))){
+            fprintf(stderr,"SEMANTIC ERROR: tried to attribute invalid data type \'%s\' into vector position \n", node->symbol->text);
+            ++ SemanticErrors;
+        }
     }
 }
 
@@ -83,10 +134,6 @@ void set_func_datatype(AST *node) {
 
     if (data_type != -1)
         node->symbol->datatype = data_type;
-}
-
-void set_param_datatype(AST *node) {
-
 }
 
 void check_vet_indexes(AST *node) {
@@ -195,18 +242,16 @@ void check_operands(AST *node) {
         // TODO
 
         // verifica se operando esquerdo é diferente de uma variável
-        printf("\n\nSymbol type v1 == %s\n\n", getSymbolName(node->symbol->type));
-        
         if (node->symbol->type != SYMBOL_VARIABLE) {
             fprintf(stderr,"SEMANTIC ERROR: trying to set a value to %s, that is not a variable (SYMBOL_VARIABLE) \n", node->symbol->text);
             ++ SemanticErrors;
         }
 
         // verifica se operando esquerdo tem mesmo datatype do operando direito
-        // if(!is_valid_attr(node->symbol->datatype, node->son[0])) {
-        //     fprintf(stderr,"SEMANTIC ERROR: trying to set a value to %s, but the type of expr is different \n", node->symbol->text);
-        //     ++ SemanticErrors;
-        // }
+        if(!is_valid_attr(node->symbol->datatype, node->son[0])) {
+            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to %s, but the type of expr is different \n", node->symbol->text);
+            ++ SemanticErrors;
+        }
 
         break;
     case AST_ATTR_ARRAY: // garantir que a atribuição de um índice de vetor está atribuindo o tipo correto

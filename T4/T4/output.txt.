@@ -1,5 +1,6 @@
-v1 = bool: FALSE;
+v1 = int: 2;
+g = char[FA2]: TRUE;
 funct ( ) = bool {
 
-v1 = TRUE
+v1 = 24.3
 };
