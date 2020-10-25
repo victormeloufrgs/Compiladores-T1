@@ -4,12 +4,15 @@
 
 int SemanticErrors = 0;
 
+bool is_number_operator(AST *node);
 bool is_number(AST *son);
-bool is_ast_symbol(int type);
-void verify_scalar_operator(AST *node, char* operator_name);
-
+bool is_integer(AST *node);
 bool is_boolean(AST *son);
+bool is_ast_symbol(int type);
+
+void verify_scalar_operator(AST *node, char* operator_name);
 void verify_boolean_operator(AST *node, char* operator_name);
+
 
 // Verifica se uma variável/função/vetor já foi declarado antes.
 void check_and_set_declarations(AST *node) {
@@ -21,7 +24,7 @@ void check_and_set_declarations(AST *node) {
     case AST_DECL_VAR: 
         if(node->symbol)
             if (node->symbol->type != SYMBOL_IDENTIFIER) {
-                fprintf(stderr,"Semantic ERROR: variable %s already declared\n", node->symbol->text);
+                fprintf(stderr,"SEMANTIC ERROR: variable %s already declared\n", node->symbol->text);
                 ++ SemanticErrors;
             }
     
@@ -44,7 +47,7 @@ void check_and_set_declarations(AST *node) {
     case AST_DECL_FUNC:
         if(node->symbol)
             if (node->symbol->type != SYMBOL_IDENTIFIER) {
-                fprintf(stderr,"Semantic ERROR: function %s already declared\n", node->symbol->text);
+                fprintf(stderr,"SEMANTIC ERROR: function %s already declared\n", node->symbol->text);
                 ++ SemanticErrors;
             }
         node->symbol->type = SYMBOL_FUNCTION;
@@ -53,13 +56,37 @@ void check_and_set_declarations(AST *node) {
         if (data_type != -1)
             node->symbol->datatype = data_type;
 
-        fprintf(stderr,"node type is %d\n", node->son[1]->type);
-        fprintf(stderr,"data_type is %d\n", data_type);
+        // fprintf(stderr,"node type is %d\n", node->son[1]->type);
+        // fprintf(stderr,"data_type is %d\n", data_type);
         break;        
     }
 
     for (i = 0; i < MAX_SONS; ++i)
         check_and_set_declarations(node->son[i]);
+}
+
+void check_vet_indexes(AST *node) {
+    int i, data_type;
+    if (node == 0)
+        return;
+
+    switch (node->type) {
+    case AST_TYPE_AND_VALUE_ARRAY: // Verificar se índice do vetor é um inteiro
+        if(!is_integer(node->son[1])) {
+            fprintf(stderr,"SEMANTIC ERROR: size of vector is not an integer\n");
+                ++ SemanticErrors;
+        }
+        break;
+    case AST_ARRAY_CALL:
+        if(!is_integer(node->son[0])) { // garante que índice do vetor é inteiro
+            fprintf(stderr,"SEMANTIC ERROR: index of vector is not an integer\n");
+                ++ SemanticErrors;
+        }
+        break;
+    }
+
+    for (i = 0; i < MAX_SONS; ++i)
+        check_vet_indexes(node->son[i]);
 }
 
 void check_var_vet_func_use(AST *node) {
@@ -68,7 +95,23 @@ void check_var_vet_func_use(AST *node) {
         return;
 
     switch (node->type) {
-
+        if(node->symbol->type != SYMBOL_VECTOR) { // garante que identifier usada como vetor é realmente vetor (não é func nem var)
+            fprintf(stderr,"SEMANTIC ERROR: %s is not a vector\n", node->symbol->text);
+                ++ SemanticErrors;
+        }
+        break;
+    case AST_FUNC_CALL:
+        if(node->symbol->type != SYMBOL_FUNCTION) { // garante que identifier usada como função é realmente função (não é vet nem var)
+            fprintf(stderr,"SEMANTIC ERROR: %s is not a function \n", node->symbol->text);
+                ++ SemanticErrors;
+        }
+        break;
+    case AST_SYMBOL_IDENTIFIER:
+        if(node->symbol->type != SYMBOL_VARIABLE) { // garante que identifier usado como var é realmente var (não é vet nem func)
+            fprintf(stderr,"SEMANTIC ERROR: %s is not a variable \n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+        break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
@@ -82,7 +125,7 @@ void check_operands(AST *node) {
 
     int i, data_type;
     
-    fprintf(stderr, "node->type == %d\n\n", node->type);
+    // fprintf(stderr, "node->type == %d\n\n", node->type);
     
     switch (node->type) {
     case AST_PLUS: // IF OPERANDS ARE *NOT* VALID
@@ -172,19 +215,32 @@ bool is_boolean(AST *son) {
     );
 }
 
+bool is_integer(AST *node) {
+    return (
+        node->type == AST_SYMBOL_INTEGER ||
+        (is_number_operator(node) && is_integer(node->son[0]) && is_integer(node->son[1]))
+    );
+}
+
 // retorna true se o nodo for do tipo número
 bool is_number(AST *son) {      
     return (
-        son->type == AST_PLUS ||
-        son->type == AST_MINUS ||
-        son->type == AST_MULT ||
-        son->type == AST_DIV ||
+        is_number_operator(son) ||
         son->type == AST_SYMBOL_INTEGER ||
         son->type == AST_SYMBOL_FLOAT ||
         (son->type = AST_FUNC_CALL && son->symbol->datatype == DATATYPE_INT) ||
         (is_ast_symbol(son->type) && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
         (is_ast_symbol(son->type) && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT)
         // TODO: FALTA TRATAR VETOR
+    );
+}
+
+bool is_number_operator(AST *node) {
+    return (
+        node->type == AST_PLUS ||
+        node->type == AST_MINUS ||
+        node->type == AST_MULT ||
+        node->type == AST_DIV
     );
 }
 

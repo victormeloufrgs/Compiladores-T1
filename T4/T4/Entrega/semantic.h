@@ -8,6 +8,7 @@
 extern int SemanticErrors;
 
 void check_and_set_declarations(AST *node);
+void check_vet_indexes(AST *node);
 void check_var_vet_func_use(AST *node);
 void check_undeclared();
 void check_operands(AST *node);

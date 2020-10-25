@@ -1,11 +1,6 @@
 
-d = bool[TRUE] : 0234 0.52 'c' FALSE TRUE;
+d = bool[23] : 0234 0.52 'c' FALSE TRUE;
 
 funct () = bool {
-
-};
-
-f =bool :TRUE;
-
-myFunction () = int {
+    print funct()
 };
