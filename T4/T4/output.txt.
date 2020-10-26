@@ -1,6 +1,6 @@
 v1 = int: 2;
-g = char[FA2]: TRUE;
+g = char[FA2]: 'a';
 funct ( ) = bool {
 
-v1 = 24.3
+funct = 1
 };

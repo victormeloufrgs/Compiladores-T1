@@ -243,7 +243,7 @@ void check_operands(AST *node) {
 
         // verifica se operando esquerdo é diferente de uma variável
         if (node->symbol->type != SYMBOL_VARIABLE) {
-            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to %s, that is not a variable (SYMBOL_VARIABLE) \n", node->symbol->text);
+            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to a not variable \'%s\' (should be SYMBOL_VARIABLE) \n", node->symbol->text);
             ++ SemanticErrors;
         }
 
@@ -257,7 +257,17 @@ void check_operands(AST *node) {
     case AST_ATTR_ARRAY: // garantir que a atribuição de um índice de vetor está atribuindo o tipo correto
 
         // verifica se operando esquerdo é diferente de um índice de vetor
+        if (node->symbol->type != SYMBOL_VECTOR) {
+            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to symbol \'%s\' indexed, but \'%s\' is not a vector (SYMBOL_VECTOR) \n", node->symbol->text, node->symbol->text);
+            ++ SemanticErrors;
+        }
+
         // verifica se operando esquerdo tem mesmo datatype do operando direito
+        if(!is_valid_attr(node->symbol->datatype, node->son[0])) {
+            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to vector \'%s\', but the value data_type is wrong (should be %d) \n", node->symbol->text, node->symbol->datatype);
+            ++ SemanticErrors;
+        }
+
         break;
     }
 
