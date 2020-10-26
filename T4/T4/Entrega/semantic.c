@@ -11,6 +11,7 @@ void check_var_decl_attr(AST *node);
 void check_array_decl_attr(AST *node);
 void check_array_values(int expected_datatype, AST *node);
 void check_array_decl_attr(AST *node);
+void check_params_datatype(AST *function_call_args, AST *param_list, char *func_name);
 
 bool is_number_operator(AST *node);
 bool is_boolean_operator(AST *node);
@@ -40,6 +41,8 @@ void check_and_set_declarations(AST *node) {
     case AST_DECL_FUNC:
         set_func_datatype(node);   
         break;    
+    case AST_PARAM_LIST:
+        break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
@@ -134,6 +137,8 @@ void set_func_datatype(AST *node) {
 
     if (data_type != -1)
         node->symbol->datatype = data_type;
+
+    node->symbol->astnode = node;
 }
 
 void check_vet_indexes(AST *node) {
@@ -176,6 +181,21 @@ void check_var_vet_func_use(AST *node) {
             fprintf(stderr,"SEMANTIC ERROR: %s is not a function \n", node->symbol->text);
                 ++ SemanticErrors;
         }
+
+        AST *function_call_args = node->son[0];
+
+        // se não tem parametros, termina aqui
+        if(function_call_args == 0)
+            break;
+
+
+
+        // verifica se número de parâmetros é correto e se parâmetros são do tipo especificado
+        if(node->symbol->astnode != 0) {
+            AST *param_list = node->symbol->astnode->son[0];
+                
+            check_params_datatype(function_call_args, param_list, node->symbol->text);
+        }
         break;
     case AST_SYMBOL_IDENTIFIER:
         if(node->symbol->type != SYMBOL_VARIABLE) { // garante que identifier usado como var é realmente var (não é vet nem func)
@@ -187,6 +207,26 @@ void check_var_vet_func_use(AST *node) {
 
     for (i = 0; i < MAX_SONS; ++i)
         check_var_vet_func_use(node->son[i]);
+}
+
+void check_params_datatype(AST *function_call_args, AST *param_list, char *func_name) {
+    
+    if(function_call_args == 0 && param_list == 0)
+        return;
+
+    if(function_call_args == 0 || param_list == 0) {
+        fprintf(stderr,"SEMANTIC ERROR: invalid parameters length for function \'%s\' \n", func_name);
+        ++ SemanticErrors;
+        return;
+    }
+
+    AST *arg = function_call_args->son[0];
+    AST *param = param_list->son[0];
+
+    if(!is_compatible_datatypes(get_datatype_of_operator(arg), get_datatype_of_type(param->type))) {
+        fprintf(stderr,"SEMANTIC ERROR: incompatible parameters for function \'%s\' \n", func_name);
+        ++ SemanticErrors;
+    }
 }
 
 // Verifica se os operandos usados numa operação são do tipo correto (ex: números para +, -, * e /, e bools pra ^, |, ==,...)
@@ -482,5 +522,5 @@ bool is_valid_attr(int identifier_datatype, AST *expr) {
 // TODO: P VERIFICAR ARGUMENTOS DE CHAMADA DE FUNÇÃO
 // PRECISA PERCORRER 2 LISTAS ENCADEADAS
 //      PRA ISSO, PRECISA MANTER UM PONTEIRO PARA APONTAR PRA AST PRA VER ONDE FOI O SÍMBOLO
-//      NO CHECK_AND_SET_DECLARATIONS, APONTAR PRO NODO AST_FUNC_DECL, PARA QUANDO CHEGAR NO NODO DE USO, PRECISA SÓ OLHAR PRA HASH QUE CONTÉM 2 PONTEIROS (1 PRA LISTA DE PARAMETROS, E 1 PRA LISTA DE ARGUMENTOS), E AÍ EH SOH VER SE SÃO COMPATIVOS.
+//      NO CHECK_AND_SET_DECLARATIONS, APONTAR PRO NODO AST_FUNC_DECL, PARA QUANDO CHEGAR NO NODO DE USO, PRECISA SÓ OLHAR PRA HASH QUE CONTÉM 2 PONTEIROS (1 PRA LISTA DE PARAMETROS, E 1 PRA LISTA DE ARGUMENTOS), E AÍ EH SOH VER SE SÃO COMPATIVEIS.
 //      A HASH VAI TER QUE INCLUIR A AST.(precisa criar um protótipo de estrutura da ast na hash.h pra dizer que a hash vai apontar pra uma estrutura que não conhece ainda).

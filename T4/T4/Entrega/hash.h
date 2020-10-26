@@ -12,12 +12,15 @@ Matrícula:  00285640
 
 #define HASH_SIZE 997
 
+struct astnode;
+
 typedef struct hash_node_struct
 {
     int type;
     int datatype;
     char *text;
     struct hash_node_struct* next;
+    struct astnode* astnode;
 } HASH_NODE;
 
 void hashInit(void);

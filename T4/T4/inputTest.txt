@@ -2,6 +2,6 @@
 v1 = int: 2; 
 g = char[FA2]: 'a';
 
-funct () = bool {
-    funct = 1
+funct (x = int) = bool {
+    print funct(2)
 };
