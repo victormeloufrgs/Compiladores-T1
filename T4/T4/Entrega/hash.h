@@ -21,6 +21,7 @@ typedef struct hash_node_struct
     char *text;
     struct hash_node_struct* next;
     struct astnode* func_decl_node;
+    int is_global_scope_declaration;
 } HASH_NODE;
 
 void hashInit(void);

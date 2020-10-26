@@ -24,6 +24,7 @@ bool is_boolean(AST *son);
 bool is_datatype_int_float_or_char(int datatype);
 
 void verify_scalar_operator(AST *node, char* operator_name);
+void verify_eq_and_dif_operators(AST *node, char* operator_name);
 void verify_boolean_operator(AST *node, char* operator_name);
 void verify_attr_var_operator(AST *node);
 
@@ -86,6 +87,9 @@ void set_scope_rec(AST *node, AST *current_scope) {
 
     node->node_scope = current_scope;
 
+    if(node->symbol != 0 && current_scope == 0)
+        node->symbol->is_global_scope_declaration = true;
+
     AST *next_scope = current_scope;
     if(node->type == AST_DECL_FUNC) {
         next_scope = node;
@@ -100,7 +104,7 @@ void set_scope_rec(AST *node, AST *current_scope) {
 void set_param_datatype(AST *node) {
     int i, data_type;
     if (node->symbol) {
-        if (node->symbol->type != SYMBOL_IDENTIFIER) {
+        if (node->symbol->type != SYMBOL_IDENTIFIER && node->symbol->is_global_scope_declaration) {
             fprintf(stderr,"SEMANTIC ERROR: identifier %s used as parameter already declared\n", node->symbol->text);
             ++ SemanticErrors;
         }
@@ -324,22 +328,22 @@ void check_operands(AST *node) {
         verify_scalar_operator(node, "DIV");
         break;
     case AST_GE:
-        verify_boolean_operator(node, "GE");
+        verify_scalar_operator(node, "GE");
         break;
     case AST_GT:
-        verify_boolean_operator(node, "GT");
+        verify_scalar_operator(node, "GT");
         break;
     case AST_LE:
-        verify_boolean_operator(node, "LE");
+        verify_scalar_operator(node, "LE");
         break;
     case AST_LT:
-        verify_boolean_operator(node, "LT");
+        verify_scalar_operator(node, "LT");
         break;
     case AST_EQ:
-        verify_boolean_operator(node, "EQ");
+        verify_eq_and_dif_operators(node, "EQ");
         break;
     case AST_DIF:
-        verify_boolean_operator(node, "DIF");
+        verify_eq_and_dif_operators(node, "DIF");
         break;
     case AST_OR:
         verify_boolean_operator(node, "OR");
@@ -395,16 +399,42 @@ void check_operands(AST *node) {
 
         break;
     case AST_WHILE:
-        //TODO
+        if (!is_boolean(node->son[0])) {
+            fprintf(stderr,"SEMANTIC ERROR: 'while' condition should be boolean \n");
+            ++ SemanticErrors;
+        }
         break;
     case AST_LOOP:
-        //TODO: É BOOL O QUE TESTA O LOOP?
+        //identifier deve ser var
+        if(node->symbol == 0 || node->symbol->type != SYMBOL_VARIABLE) {
+            fprintf(stderr,"SEMANTIC ERROR: 'loop' should use a variable to be incremented \n");
+            ++ SemanticErrors;
+        }
+
+        // son[0] deve ser int/float/char
+        if(!is_number(node->son[0])) {
+            fprintf(stderr,"SEMANTIC ERROR: 'loop' should start var with a number \n");
+            ++ SemanticErrors;
+        }
+
+        // son[1] deve ser bool
+        if (!is_boolean(node->son[1])) {
+            fprintf(stderr,"SEMANTIC ERROR: 'loop' condition should be a boolean \n");
+            ++ SemanticErrors;
+        }
+
+        // son[2] deve ser int/float/char 
+        if (!is_number(node->son[2])) {
+            fprintf(stderr,"SEMANTIC ERROR: 'loop' increment should be a number\n");
+            ++ SemanticErrors;
+        }
+
         break;
     case AST_IF_THEN:
-        //TODO: É BOOL DENTRO DO IF?
-        break;
-    case AST_MAYBE_ELSE:
-        //TODO
+        if (!is_boolean(node->son[0])) {
+            fprintf(stderr,"SEMANTIC ERROR: 'if' condition should be a boolean \n");
+            ++ SemanticErrors;
+        }
         break;
     }
 
@@ -447,6 +477,14 @@ void verify_scalar_operator(AST *node, char* operator_name) {
 
     if (node->son[1] != 0 &&!is_number(node->son[1])) {
         fprintf(stderr,"Semantic ERROR: invalid right operand for %s \n", operator_name);
+        ++ SemanticErrors;
+    }
+}
+
+void verify_eq_and_dif_operators(AST *node, char* operator_name) {
+    if (!(is_number(node->son[0]) && is_number(node->son[1])) &&
+        !(is_boolean(node->son[0]) && is_boolean(node->son[1]))) {
+        fprintf(stderr,"Semantic ERROR: invalid left operand for %s \n", operator_name);
         ++ SemanticErrors;
     }
 }

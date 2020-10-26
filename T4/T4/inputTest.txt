@@ -1,11 +1,22 @@
 
-g = int[FA2]: 23 5 'c' FALSE;
+g = int[FA2]: 23 5 'c' 1;
 v1 = float : 23.0;
+a = int: 0;
 
-f_float() = char {
-
+myFunction (x = int, n = int ) = int {
+    v1 = myFunction(23, 4)
+    {}
 };
 
 funct (x = char, y = int, b = bool) = int {
     v1 = 44.0
+    while (34.0 == v1)
+        print 33
+
+    loop(v1 : 1 , TRUE, 4) {
+
+    }
+
+    if ( a==15 | a==17 ) then print 0 if ( a==15 | a==17 ) then print 1 else print 2
+
 };

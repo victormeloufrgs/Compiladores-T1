@@ -25,13 +25,5 @@ myFunction (x = int, n = int ) = int {
 };
 
 function2 (p1 = int, p2 = bool) = bool {
-    print 52, 34, 5^ 23 | TRUE
-    v[50 ^ y] = 1 + 2 * 34 / 5
-    while (5+2 > 3)
-        print 33
-    
-    print 2
-    print a + 25 ^ myFunction(34, myFunction(43))
-    
     if ( a==15 | a==17 ) then print 0 if ( a==15 | a==17 ) then print 1 else print 2
 };
