@@ -93,6 +93,7 @@ typedef struct astnode
     struct astnode *son[MAX_SONS];
     struct astnode* next_decl_param;
     struct astnode* next_arg_param;
+    struct astnode* node_scope; //if 0, global
 } AST;
 
 AST *astCreate(int type, HASH_NODE *symbol, AST* s0, AST* s1, AST* s2, AST* s3);

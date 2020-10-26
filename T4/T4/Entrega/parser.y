@@ -94,6 +94,7 @@ Matrícula:  00285640
 program: declaration_list                           { 
                                                       tree = $1; 
                                                       check_and_set_declarations($1);
+                                                      set_scope($1);
                                                       check_vet_indexes($1);
                                                       check_var_vet_func_use($1);
                                                       check_undeclared();

@@ -8,6 +8,8 @@ void set_func_datatype(AST *node);
 void set_var_datatype(AST *node);
 void set_param_datatype(AST *node);
 
+void set_scope_rec(AST *node, AST *current_scope);
+
 void check_var_decl_attr(AST *node);
 void check_array_decl_attr(AST *node);
 void check_array_values(int expected_datatype, AST *node);
@@ -18,6 +20,8 @@ bool is_number_operator(AST *node);
 bool is_boolean_operator(AST *node);
 bool is_number(AST *son);
 bool is_boolean(AST *son);
+
+bool is_datatype_int_float_or_char(int datatype);
 
 void verify_scalar_operator(AST *node, char* operator_name);
 void verify_boolean_operator(AST *node, char* operator_name);
@@ -37,7 +41,7 @@ void check_and_set_declarations(AST *node) {
         return;
 
     switch (node->type) {
-    case AST_DECL_VAR: 
+    case AST_DECL_VAR:
         set_var_datatype(node);
         break;
     case AST_DECL_FUNC:
@@ -45,7 +49,7 @@ void check_and_set_declarations(AST *node) {
         break;
     case AST_PARAM:
         set_param_datatype(node);
-
+        break;
     case AST_PARAM_LIST:
 
         if(node->son[1])
@@ -70,6 +74,26 @@ void check_and_set_declarations(AST *node) {
 
     for (i = 0; i < MAX_SONS; ++i)
         check_and_set_declarations(node->son[i]);
+}
+
+void set_scope(AST *node) {
+    set_scope_rec(node, 0);
+}
+
+void set_scope_rec(AST *node, AST *current_scope) {
+    if(node == 0)
+        return;
+
+    node->node_scope = current_scope;
+
+    AST *next_scope = current_scope;
+    if(node->type == AST_DECL_FUNC) {
+        next_scope = node;
+    }
+
+    int i;
+    for (i = 0; i < MAX_SONS; ++i)
+        set_scope_rec(node->son[i], next_scope);
 }
 
 //TODO: PRECISA SETAR AQUI QUE AS DEFINIÇÕES DE PARAMETROS NAS DECLARAÇÕES DE FUNÇÕES TAMBÉM SÃO DECLARAÇÕES DE VARIÁVEIS (NO ESCOPO DA FUNÇÃO) (são SYMBOL_PARAM)
@@ -328,7 +352,6 @@ void check_operands(AST *node) {
         break;
     case AST_ATTR: // garantir que a atribuição de uma variável está atribuindo o tipo correto
         // TODO
-
         // verifica se operando esquerdo é diferente de uma variável
         if (node->symbol->type != SYMBOL_VARIABLE) {
             fprintf(stderr,"SEMANTIC ERROR: trying to set a value to a not variable \'%s\' (should be SYMBOL_VARIABLE) \n", node->symbol->text);
@@ -350,9 +373,23 @@ void check_operands(AST *node) {
             ++ SemanticErrors;
         }
 
+        // // verifica se indice do vetor é inteiro ou float
+        if(!(is_valid_attr(DATATYPE_INT, node->son[0]) || is_valid_attr(DATATYPE_FLOAT, node->son[0]) || is_valid_attr(DATATYPE_CHAR, node->son[0]))) {
+            fprintf(stderr,"SEMANTIC ERROR: index used on \'%s\' should be int or float. \n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+
         // verifica se operando esquerdo tem mesmo datatype do operando direito
-        if(!is_valid_attr(node->symbol->datatype, node->son[0])) {
-            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to vector \'%s\', but the value data_type is wrong (should be %d) \n", node->symbol->text, node->symbol->datatype);
+        if(!is_valid_attr(node->symbol->datatype, node->son[1])) {
+            fprintf(stderr,"SEMANTIC ERROR: trying to set a value to vector \'%s\', but the value data_type is wrong\n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+
+        break;
+
+    case AST_RETURN:
+        if(!is_compatible_datatypes(get_datatype_of_operator(node->son[0]), get_datatype_of_func_decl(node->node_scope))) {
+            fprintf(stderr,"SEMANTIC ERROR: wrong return type for function %s \n", node->node_scope->symbol->text);
             ++ SemanticErrors;
         }
 
@@ -449,13 +486,18 @@ bool is_boolean(AST *son) {
 bool is_number(AST *son) {      
     return (
         is_number_operator(son) ||
+        son->type == AST_SYMBOL_CHAR ||
         son->type == AST_SYMBOL_INTEGER ||
         son->type == AST_SYMBOL_FLOAT ||
         (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_INT) ||
+        (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_FLOAT) ||
+        (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_CHAR) ||
         (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
         (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT) ||
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_CHAR) ||
         (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_INT) ||
-        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_FLOAT)
+        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_FLOAT)||
+        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_CHAR)
     );
 }
 
@@ -491,6 +533,17 @@ int get_semantic_errors() {
     return SemanticErrors;
 }
 
+int get_datatype_of(AST *node) {
+    switch (node->type) {
+    case AST_FUNC_CALL:
+        return node->symbol->datatype;    
+    case AST_SYMBOL_IDENTIFIER:
+        return node->symbol->datatype;
+    default:
+        return get_datatype_of_operator(node);
+    }
+}
+
 int get_datatype_of_vet_decl(AST *node) {
     if (node->son[0])
         if(node->son[0]->son[0])
@@ -506,7 +559,7 @@ int get_datatype_of_var_decl(AST *node) {
 }
 
 int get_datatype_of_func_decl(AST *node) {
-    if (node->son[1])
+    if (node != 0 && node->son[1])
         return get_datatype_of_type(node->son[1]->type);
     return 0;
 }
@@ -535,8 +588,8 @@ int get_datatype_of_operator(AST *node) {
         data_type_1 = get_datatype_of_operator(node->son[1]);
 
     if (is_compatible_datatypes(data_type_0, data_type_1)) {
-        if (data_type_0 == DATATYPE_INT || data_type_1 == DATATYPE_INT)
-            return DATATYPE_INT;
+        if (data_type_0 == DATATYPE_FLOAT || data_type_1 == DATATYPE_FLOAT)
+            return DATATYPE_FLOAT;
 
         return data_type_0;
     }
@@ -551,11 +604,18 @@ bool is_compatible_datatypes(int d1, int d2) {
     if (d1 == d2)
         return true;
 
-    if (d1 == DATATYPE_INT && d2 == DATATYPE_FLOAT || 
-        d1 == DATATYPE_FLOAT && d2 == DATATYPE_INT)
+    if (is_datatype_int_float_or_char(d1) && is_datatype_int_float_or_char(d2))
         return true;
     
     return false;
+}
+
+bool is_datatype_int_float_or_char(int datatype) {
+    return (
+        datatype == DATATYPE_INT ||
+        datatype == DATATYPE_FLOAT ||
+        datatype == DATATYPE_CHAR
+    );
 }
 
 int get_datatype_of_type(int type) {
@@ -578,7 +638,7 @@ int get_datatype_of_type(int type) {
 
 bool is_valid_attr(int identifier_datatype, AST *expr) {
     return (
-        is_compatible_datatypes(identifier_datatype, get_datatype_of_operator(expr))
+        is_compatible_datatypes(identifier_datatype, get_datatype_of(expr))
     );
 }
 

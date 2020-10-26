@@ -1,6 +1,9 @@
-v1 = int: 2;
-g = char[FA2]: 'a';
-funct ( x = char , y = int , b = bool ) = bool {
+g = int[FA2]: 23 5 'c' FALSE;
+v1 = float: 23.0;
+f_float ( ) = char {
 
-print funct ('c' , 'v' , 234 ) 
+};
+funct ( x = char , y = int , b = bool ) = int {
+
+v1 = 44.0
 };
