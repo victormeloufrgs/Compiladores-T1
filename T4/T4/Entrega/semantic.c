@@ -6,6 +6,7 @@ int SemanticErrors = 0;
 
 void set_func_datatype(AST *node);
 void set_var_datatype(AST *node);
+void set_param_datatype(AST *node);
 
 void check_var_decl_attr(AST *node);
 void check_array_decl_attr(AST *node);
@@ -23,6 +24,7 @@ void verify_boolean_operator(AST *node, char* operator_name);
 void verify_attr_var_operator(AST *node);
 
 
+int get_datatype_of_param(AST *node);
 int get_datatype_of_operator(AST *node);
 bool is_compatible_datatypes(int d1, int d2);
 bool is_valid_attr(int identifier_datatype, AST *expr);
@@ -40,13 +42,50 @@ void check_and_set_declarations(AST *node) {
         break;
     case AST_DECL_FUNC:
         set_func_datatype(node);   
-        break;    
+        break;
+    case AST_PARAM:
+        set_param_datatype(node);
+
     case AST_PARAM_LIST:
+
+        if(node->son[1])
+            node->next_decl_param = node->son[1];
+        break;
+    case AST_PARAM_LIST_EXT:
+
+        if(node->son[1])
+            node->next_decl_param = node->son[1];
+        break;
+    case AST_FUNC_CALL_ARGS:
+
+        if(node->son[1])
+            node->next_arg_param = node->son[1];
+        break;
+    case AST_FUNC_CALL_ARGS_EXT:
+        
+        if(node->son[1])
+            node->next_arg_param = node->son[1];
         break;
     }
 
     for (i = 0; i < MAX_SONS; ++i)
         check_and_set_declarations(node->son[i]);
+}
+
+//TODO: PRECISA SETAR AQUI QUE AS DEFINIÇÕES DE PARAMETROS NAS DECLARAÇÕES DE FUNÇÕES TAMBÉM SÃO DECLARAÇÕES DE VARIÁVEIS (NO ESCOPO DA FUNÇÃO) (são SYMBOL_PARAM)
+void set_param_datatype(AST *node) {
+    int i, data_type;
+    if (node->symbol) {
+        if (node->symbol->type != SYMBOL_IDENTIFIER) {
+            fprintf(stderr,"SEMANTIC ERROR: identifier %s used as parameter already declared\n", node->symbol->text);
+            ++ SemanticErrors;
+        }
+
+        node->symbol->type = SYMBOL_PARAM;
+        data_type = get_datatype_of_param(node);
+        if (data_type != -1)
+            node->symbol->datatype = data_type;
+    }
 }
 
 void set_var_datatype(AST *node) {
@@ -138,7 +177,7 @@ void set_func_datatype(AST *node) {
     if (data_type != -1)
         node->symbol->datatype = data_type;
 
-    node->symbol->astnode = node;
+    node->symbol->func_decl_node = node;
 }
 
 void check_vet_indexes(AST *node) {
@@ -188,11 +227,9 @@ void check_var_vet_func_use(AST *node) {
         if(function_call_args == 0)
             break;
 
-
-
         // verifica se número de parâmetros é correto e se parâmetros são do tipo especificado
-        if(node->symbol->astnode != 0) {
-            AST *param_list = node->symbol->astnode->son[0];
+        if(node->symbol->func_decl_node != 0) {
+            AST *param_list = node->symbol->func_decl_node->son[0];
                 
             check_params_datatype(function_call_args, param_list, node->symbol->text);
         }
@@ -210,11 +247,20 @@ void check_var_vet_func_use(AST *node) {
 }
 
 void check_params_datatype(AST *function_call_args, AST *param_list, char *func_name) {
+
+    if((function_call_args == 0 && param_list == 0))
+        return;
     
-    if(function_call_args == 0 && param_list == 0)
+    if(function_call_args == 0 || param_list == 0) {
+        fprintf(stderr,"SEMANTIC ERROR: invalid parameters length for function \'%s\' \n", func_name);
+        ++ SemanticErrors;
+        return;
+    }
+
+    if (function_call_args->son[0] == 0 && param_list->son[0] == 0)
         return;
 
-    if(function_call_args == 0 || param_list == 0) {
+    if(function_call_args->son[0] == 0 || param_list->son[0] == 0) {
         fprintf(stderr,"SEMANTIC ERROR: invalid parameters length for function \'%s\' \n", func_name);
         ++ SemanticErrors;
         return;
@@ -223,10 +269,12 @@ void check_params_datatype(AST *function_call_args, AST *param_list, char *func_
     AST *arg = function_call_args->son[0];
     AST *param = param_list->son[0];
 
-    if(!is_compatible_datatypes(get_datatype_of_operator(arg), get_datatype_of_type(param->type))) {
-        fprintf(stderr,"SEMANTIC ERROR: incompatible parameters for function \'%s\' \n", func_name);
+    if(!is_compatible_datatypes(get_datatype_of_operator(arg), param->symbol->datatype)) {
+        fprintf(stderr,"SEMANTIC ERROR: incompatible arguments for function \'%s\' \n", func_name);
         ++ SemanticErrors;
     }
+
+    check_params_datatype(function_call_args->next_arg_param, param_list->next_decl_param, func_name);
 }
 
 // Verifica se os operandos usados numa operação são do tipo correto (ex: números para +, -, * e /, e bools pra ^, |, ==,...)
@@ -308,6 +356,18 @@ void check_operands(AST *node) {
             ++ SemanticErrors;
         }
 
+        break;
+    case AST_WHILE:
+        //TODO
+        break;
+    case AST_LOOP:
+        //TODO: É BOOL O QUE TESTA O LOOP?
+        break;
+    case AST_IF_THEN:
+        //TODO: É BOOL DENTRO DO IF?
+        break;
+    case AST_MAYBE_ELSE:
+        //TODO
         break;
     }
 
@@ -448,6 +508,13 @@ int get_datatype_of_var_decl(AST *node) {
 int get_datatype_of_func_decl(AST *node) {
     if (node->son[1])
         return get_datatype_of_type(node->son[1]->type);
+    return 0;
+}
+
+int get_datatype_of_param(AST *node) {
+    if(node->son[0])
+        return get_datatype_of_type(node->son[0]->type);
+
     return 0;
 }
 

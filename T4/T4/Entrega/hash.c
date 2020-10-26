@@ -60,7 +60,7 @@ void hashPrint() {
     int i = 0;
 
     printf("\nSYMBOLS TABLE:\n");
-    printf("-------TYPE--------|------DATATYPE--------|---VALUE--------");
+    printf("-------TYPE--------|----DATATYPE----|---VALUE---");
     for(i=0; i < HASH_SIZE; i++) {
         HASH_NODE* node = hash_table[i];
         if(node == NULL) continue;
@@ -72,7 +72,7 @@ void hashPrint() {
 
     }
 
-    printf("\n-------------------------------------\n\n");
+    printf("\n------------------------------------------------\n\n");
 }
 
 int hash_check_undeclared() {

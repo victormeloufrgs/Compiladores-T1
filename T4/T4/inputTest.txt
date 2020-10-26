@@ -2,6 +2,6 @@
 v1 = int: 2; 
 g = char[FA2]: 'a';
 
-funct (x = int) = bool {
-    print funct(2)
+funct (x = char, y = int, b = bool) = bool {
+    print funct('c', 'v', 234)
 };

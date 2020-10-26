@@ -18,6 +18,7 @@ const char* getSymbolName(int symbol) {
         case SYMBOL_FUNCTION: return "SYMBOL_FUNCTION   ";
         case SYMBOL_VECTOR: return "SYMBOL_VECTOR     ";
         case SYMBOL_IDENTIFIER: return "SYMBOL_IDENTIFIER ";
+        case SYMBOL_PARAM: return "SYMBOL_PARAM      ";
         default: return "ERROR! UNDEFINED SYMBOL";
     }
 }

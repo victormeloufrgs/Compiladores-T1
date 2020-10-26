@@ -20,7 +20,7 @@ typedef struct hash_node_struct
     int datatype;
     char *text;
     struct hash_node_struct* next;
-    struct astnode* astnode;
+    struct astnode* func_decl_node;
 } HASH_NODE;
 
 void hashInit(void);
