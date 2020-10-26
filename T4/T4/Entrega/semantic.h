@@ -1,3 +1,8 @@
+/*
+Aluno:      Victor dos Santos Melo
+Matrícula:  00285640
+*/
+
 #ifndef SEMANTIC_HEADER
 #define SEMANTIC_HEADER
 

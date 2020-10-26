@@ -1,3 +1,7 @@
+/*
+Aluno:      Victor dos Santos Melo
+Matrícula:  00285640
+*/
 
 #include "semantic.h"
 #include "stdbool.h"
@@ -100,7 +104,6 @@ void set_scope_rec(AST *node, AST *current_scope) {
         set_scope_rec(node->son[i], next_scope);
 }
 
-//TODO: PRECISA SETAR AQUI QUE AS DEFINIÇÕES DE PARAMETROS NAS DECLARAÇÕES DE FUNÇÕES TAMBÉM SÃO DECLARAÇÕES DE VARIÁVEIS (NO ESCOPO DA FUNÇÃO) (são SYMBOL_PARAM)
 void set_param_datatype(AST *node) {
     int i, data_type;
     if (node->symbol) {
@@ -155,7 +158,6 @@ void check_var_decl_attr(AST *node) {
 }
 
 //verifica se cada um dos valores passados na lista são do tipo correto
-
 void check_array_decl_attr(AST *node) {
 
     //saber qual o tipo correto
@@ -166,7 +168,7 @@ void check_array_decl_attr(AST *node) {
         AST *vet_value = vet_maybe_value->son[0];
 
         //percorrer a lista
-            //comparar o tipo de cada elemento com o tipo correto (is_compatible)
+        //comparar o tipo de cada elemento com o tipo correto (is_compatible)
         check_array_values(expected_datatype, vet_value);
     }
 }
@@ -355,7 +357,6 @@ void check_operands(AST *node) {
         verify_boolean_operator(node, "NOT");
         break;
     case AST_ATTR: // garantir que a atribuição de uma variável está atribuindo o tipo correto
-        // TODO
         // verifica se operando esquerdo é diferente de uma variável
         if (node->symbol->type != SYMBOL_VARIABLE) {
             fprintf(stderr,"SEMANTIC ERROR: trying to set a value to a not variable \'%s\' (should be SYMBOL_VARIABLE) \n", node->symbol->text);
@@ -441,33 +442,6 @@ void check_operands(AST *node) {
     for (i = 0; i < MAX_SONS; i++)
         check_operands(node->son[i]);
 }
-
-// void verify_attr_var_operator(AST *node) {
-
-//     if (!is_attributable(node->son[0]) || node->symbol->datatype != get_datatype_of_attributable(node->son[0]->type)) {
-//         fprintf(stderr,"Semantic ERROR: invalid attribution to variable %s (the types are different) \n", node->symbol->text);
-//         ++ SemanticErrors;
-//     }
-// }
-
-// int is_attributable(AST *node) {
-//     return (
-//         is_boolean(node->type) ||
-//         is_number(node->type) ||
-//         node->type == AST_SYMBOL_STRING ||
-//         node->type == AST_SYMBOL_CHAR ||
-//         node->type == AST_SYMBOL_IDENTIFIER
-//     );
-// }
-
-// int get_datatype_of_attributable(AST *node) {
-//     int i;
-//     if(node == 0)
-//         return;
-//     for (i = 0; i < MAX_SONS; i++)
-//         check_operands(node->son[i]);
-    
-// }
 
 void verify_scalar_operator(AST *node, char* operator_name) {
     if (node->son[0] != 0 && !is_number(node->son[0])) {
@@ -679,13 +653,3 @@ bool is_valid_attr(int identifier_datatype, AST *expr) {
         is_compatible_datatypes(identifier_datatype, get_datatype_of(expr))
     );
 }
-
-//TODO: P/ TESTAR INDICES DO VETOR (ver se o tipo dos valores são os mesmos do tipo do vetor), TEMOS QUE GARANTIR QUE ELES SÃO NÚMEROS. SE HOUVER + ÍNDICES DO QUE O ESPECIFICADO, É VÁLIDO. 
-//  EH PRECISO PERCORRER BOTTOM-UP (PASSAR A RECURSÃO PRO INÍCIO DO MÉTODO, ANTES DO TESTE)
-//   CRIAR UM CAMPO NO AST PARA DISTINGUIR O FLOAT DO INT.
-
-// TODO: P VERIFICAR ARGUMENTOS DE CHAMADA DE FUNÇÃO
-// PRECISA PERCORRER 2 LISTAS ENCADEADAS
-//      PRA ISSO, PRECISA MANTER UM PONTEIRO PARA APONTAR PRA AST PRA VER ONDE FOI O SÍMBOLO
-//      NO CHECK_AND_SET_DECLARATIONS, APONTAR PRO NODO AST_FUNC_DECL, PARA QUANDO CHEGAR NO NODO DE USO, PRECISA SÓ OLHAR PRA HASH QUE CONTÉM 2 PONTEIROS (1 PRA LISTA DE PARAMETROS, E 1 PRA LISTA DE ARGUMENTOS), E AÍ EH SOH VER SE SÃO COMPATIVEIS.
-//      A HASH VAI TER QUE INCLUIR A AST.(precisa criar um protótipo de estrutura da ast na hash.h pra dizer que a hash vai apontar pra uma estrutura que não conhece ainda).

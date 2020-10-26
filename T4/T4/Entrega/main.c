@@ -39,17 +39,15 @@ int main(int argc, char ** argv) {
 
     yyparse();
 
-    writeStringToFile(argv[2], decompileTree(tree));
-
-    hashPrint();
-
     if (get_semantic_errors() > 0) {
         fprintf(stderr, "COMPILATION FAILURE: There are semantic errors\n");
         exit(4);
     }
 
-    // astPrint(tree, 0);
-    
+    writeStringToFile(argv[2], decompileTree(tree));
+
+    // hashPrint();
+
     fprintf(stderr,"Compilation success!\n");
     
     exit(0);
