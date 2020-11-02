@@ -80,7 +80,7 @@ TAC* generateCode(AST* node) {
             result = tacJoin(tacJoin(code[0], code[1]), 
                             tacCreate(TAC_ADD, makeTemp(), getResFrom(code[0]), getResFrom(code[1]))); 
             break;
-        case AST_SUB:
+        case AST_MINUS:
             // TODO
             break;
         case AST_ATTR:
@@ -94,7 +94,7 @@ TAC* generateCode(AST* node) {
 }
 
 void makeBinOperation(int tac_operator, TAC* code[]) {
-
+    
 }
 
 HASH_NODE *getResFrom(TAC *code) {
