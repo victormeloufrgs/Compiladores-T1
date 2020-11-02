@@ -19,6 +19,7 @@ Matrícula:  00285640
 #define SYMBOL_FUNCTION 9
 #define SYMBOL_VECTOR 10
 #define SYMBOL_PARAM  11
+#define SYMBOL_LABEL  12
 
 #define DATATYPE_INT    1
 #define DATATYPE_BOOL   2

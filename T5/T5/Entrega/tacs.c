@@ -2,6 +2,8 @@
 #include "tacs.h"
 
 HASH_NODE *getResFrom(TAC *code);
+TAC* makeBinaryOperation(int tac_operator, TAC* code0, TAC* code1);
+TAC* makeIfThen(TAC* code0, TAC* code1);
 
 TAC* tacCreate(int type, HASH_NODE* res, HASH_NODE* op1, HASH_NODE* op2) {
     TAC* newtac = 0;
@@ -26,6 +28,8 @@ void tacPrint(TAC* tac) {
         case TAC_ADD: fprintf(stderr, "TAC_ADD"); break;
         case TAC_SUB: fprintf(stderr, "TAC_SUB"); break;
         case TAC_COPY: fprintf(stderr, "TAC_COPY"); break;
+        case TAC_JFALSE: fprintf(stderr, "TAC_JFALSE"); break;
+        case TAC_LABEL: fprintf(stderr, "TAC_LABEL"); break;
         default: fprintf(stderr, "TAC_UNKNOWN"); break;
     }
 
@@ -77,25 +81,46 @@ TAC* generateCode(AST* node) {
         case AST_SYMBOL_TRUE: result = tacCreate(TAC_SYMBOL, node->symbol, 0, 0); break;
 
         case AST_PLUS: 
-            result = tacJoin(tacJoin(code[0], code[1]), 
-                            tacCreate(TAC_ADD, makeTemp(), getResFrom(code[0]), getResFrom(code[1]))); 
+            result = makeBinaryOperation(TAC_ADD, code[0], code[1]);
             break;
         case AST_MINUS:
-            // TODO
+            result = makeBinaryOperation(TAC_SUB, code[0], code[1]);
+            break;
+        case AST_IF_THEN:
+            result = makeIfThen(code[0], code[1]);
             break;
         case AST_ATTR:
             result = tacJoin(code[0], tacCreate(TAC_COPY, node->symbol, getResFrom(code[0]), 0));
             break;
 
-        default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3]))); break;
+        default: 
+            result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3]))); 
+            break;
     }
 
     return result;
 }
 
-void makeBinOperation(int tac_operator, TAC* code[]) {
-    
+TAC* makeBinaryOperation(int tac_operator, TAC* code0, TAC* code1) {
+    return tacJoin(tacJoin(code0, code1), tacCreate(tac_operator, makeTemp(), getResFrom(code0), getResFrom(code1)));
 }
+
+
+TAC* makeIfThen(TAC* code0, TAC* code1) {
+    TAC* jumptac = 0;
+    TAC* labeltac = 0;
+    HASH_NODE* newlabel = 0;
+    newlabel = makeLabel();
+
+    jumptac = tacCreate(TAC_JFALSE, newlabel, getResFrom(code0), 0);
+    jumptac->prev = code0;
+
+    labeltac = tacCreate(TAC_LABEL, newlabel, 0, 0);
+    labeltac->prev = code1;
+
+    return tacJoin(jumptac, labeltac);
+}
+
 
 HASH_NODE *getResFrom(TAC *code) {
     if(!code) return 0;

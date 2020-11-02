@@ -432,6 +432,7 @@ void check_operands(AST *node) {
 
         break;
     case AST_IF_THEN:
+
         if (!is_boolean(node->son[0])) {
             fprintf(stderr,"SEMANTIC ERROR: 'if' condition should be a boolean \n");
             ++ SemanticErrors;
@@ -488,9 +489,12 @@ bool is_boolean(AST *son) {
         son->type == AST_EQ ||
         son->type == AST_DIF ||
         son->type == AST_NOT ||
-        (son->symbol->type == SYMBOL_FUNCTION && son->symbol->datatype == DATATYPE_BOOL) ||
-        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_BOOL) ||
-        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_BOOL)
+        ((son->symbol && son->symbol->datatype) &&
+        (son->symbol->type == SYMBOL_FUNCTION && son->symbol->datatype == DATATYPE_BOOL)) ||
+        ((son->symbol && son->symbol->type) &&
+        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_BOOL)) ||
+        ((son->type && son->symbol && son->symbol->type && son->symbol->datatype) &&
+        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_BOOL))
     );
 }
 
@@ -504,12 +508,17 @@ bool is_number(AST *son) {
         (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_INT) ||
         (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_FLOAT) ||
         (son->type == AST_FUNC_CALL && son->symbol->datatype == DATATYPE_CHAR) ||
-        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
-        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT) ||
-        (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_CHAR) ||
-        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_INT) ||
-        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_FLOAT)||
-        (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_CHAR)
+        (
+            (son->type && son->symbol && son->symbol->type && son->symbol->datatype) &&
+            (
+                (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_INT) ||
+                (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_FLOAT) ||
+                (son->type == AST_SYMBOL_IDENTIFIER && son->symbol->type == SYMBOL_VARIABLE && son->symbol->datatype == DATATYPE_CHAR) ||
+                (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_INT) ||
+                (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_FLOAT)||
+                (son->type == AST_ARRAY_CALL && son->symbol->type == SYMBOL_VECTOR && son->symbol->datatype == DATATYPE_CHAR)
+            )
+        )
     );
 }
 
