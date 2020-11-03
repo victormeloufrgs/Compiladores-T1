@@ -10,6 +10,8 @@ TAC* makeArrayCall(AST* node, TAC* code0);
 TAC* makeFunctionCall(AST* node, TAC* code0);
 TAC* makeFunctionCallArgs(AST* node, TAC* code0, TAC* code1);
 TAC* makePrint(AST* node, TAC* code0, TAC* code1);
+TAC* makeLoop(AST* node, TAC* code0, TAC* code1, TAC* code2, TAC* code3);
+TAC* makeWhile(AST* node, TAC* code0, TAC* code1);
 TAC* makeIfThen(AST* node, TAC* code0, TAC* code1, TAC* code2);
 TAC* makeIfThenElse(AST* node, TAC* code0, TAC* code1, TAC* code2);
 
@@ -53,6 +55,7 @@ void tacPrint(TAC* tac) {
         case TAC_ACALL  : fprintf(stderr,"TAC_ACALL"); break;
         case TAC_FCALL  : fprintf(stderr,"TAC_FCALL"); break;
         case TAC_PRINT  : fprintf(stderr,"TAC_PRINT"); break;
+        case TAC_JEQ  : fprintf(stderr,"TAC_JEQ"); break;
         default         : fprintf(stderr, "TAC_UNKNOWN"); break;
     }
 
@@ -129,8 +132,8 @@ TAC* generateCode(AST* node) {
 
         // CONTROL FLOW
      
-        // case AST_LOOP: break;           
-        // case AST_WHILE: break;           
+        case AST_LOOP:                  result = makeLoop(node, code[0], code[1], code[2], code[3]); break; 
+        case AST_WHILE:                 result = makeWhile(node, code[0], code[1]); break;           
         case AST_IF_THEN:               result = makeIfThen(node, code[0], code[1], code[2]); break;
 
         // COMMAND
@@ -261,6 +264,56 @@ TAC* makePrint(AST* node, TAC* code0, TAC* code1) {
     return tacJoin(code0, code1 ? tacJoin(print, code1) : print);
 }
 
+TAC* makeLoop(AST* node, TAC* code0, TAC* code1, TAC* code2, TAC* code3) {
+    /*
+        for base to end (OBS: ascendent only)
+
+        mov temp, base
+        :begin
+        <code>
+        inc rBase
+        jeq end, temp, end
+        jump begin
+        :end
+
+     */
+
+    HASH_NODE* beginLabelSymbol = makeLabel();
+    HASH_NODE* endLabelSymbol = makeLabel();
+    HASH_NODE* temp = makeTemp();
+
+    TAC* move = tacCreate(TAC_MOVE, temp, code0->res, 0);
+    TAC* beginLabel = tacCreate(TAC_LABEL, beginLabelSymbol, 0, 0);
+    TAC* inc = tacCreate(TAC_ADD, temp, temp, code2->res);
+    TAC* jeq = tacCreate(TAC_JEQ, endLabelSymbol, temp, code1->res);
+    TAC* jump = tacCreate(TAC_JUMP, beginLabelSymbol, 0, 0);
+    TAC* endLabel = tacCreate(TAC_LABEL, endLabelSymbol, 0, 0);
+
+    return tacJoin(code0, tacJoin(code1, tacJoin(move, tacJoin(beginLabel, tacJoin(code2, tacJoin(jeq, tacJoin(code3, tacJoin(inc, tacJoin(jump, endLabel)))))))));
+}
+
+
+TAC* makeWhile(AST* node, TAC* code0, TAC* code1) {
+    /*
+        while condition
+        :begin
+        JFALSE end, bool
+        <code>
+        JUMP begin
+        :end
+    */
+
+    HASH_NODE* beginLabelSymbol = makeLabel();
+    HASH_NODE* endLabelSymbol = makeLabel();    
+
+    TAC* beginLabel = tacCreate(TAC_LABEL, beginLabelSymbol, 0, 0);
+    TAC* jFalse = tacCreate(TAC_JFALSE, endLabelSymbol, code0->res, 0);
+    TAC* jump = tacCreate(TAC_JUMP, beginLabelSymbol, 0, 0);
+    TAC* endLabel = tacCreate(TAC_LABEL, endLabelSymbol, 0, 0);
+
+    return tacJoin(code0, tacJoin(beginLabel, tacJoin(jFalse, tacJoin(code1, tacJoin(jump, endLabel)))));
+}
+
 TAC* makeIfThen(AST* node, TAC* code0, TAC* code1, TAC* code2) {
     if (code2) return makeIfThenElse(node, code0, code1, code2);
 
@@ -288,7 +341,6 @@ TAC* makeIfThenElse(AST* node, TAC* code0, TAC* code1, TAC* code2) {
         :end
     */
 
-    printf("CHAMOOOU!!!\n");
     HASH_NODE* elseLabelSymbol = makeLabel();
     HASH_NODE* endLabelSymbol = makeLabel();    
 

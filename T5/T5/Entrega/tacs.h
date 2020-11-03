@@ -29,6 +29,7 @@
 #define TAC_FCALL                   20
 #define TAC_ARG                     21
 #define TAC_PRINT                   22
+#define TAC_JEQ                     23
 
 
 typedef struct tac_node {
