@@ -15,6 +15,9 @@ void hashInit(void)
     int i;
     for(i = 0; i < HASH_SIZE; i++)
         hash_table[i] = 0;
+
+    hashTrue = hashInsert("1", SYMBOL_LIT_TRUE);
+    hashFalse = hashInsert("0", SYMBOL_LIT_FALSE);
 }
 
 // Algoritmo: soma os códigos ascii, multiplicando cada char por seu indice. Retorna soma % HASH_SIZE

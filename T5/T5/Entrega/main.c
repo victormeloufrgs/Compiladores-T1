@@ -46,7 +46,7 @@ int main(int argc, char ** argv) {
 
     writeStringToFile(argv[2], decompileTree(tree));
 
-    // hashPrint();
+    hashPrint();
 
     fprintf(stderr,"Compilation success!\n");
     

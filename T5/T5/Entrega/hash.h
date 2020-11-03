@@ -24,6 +24,9 @@ typedef struct hash_node_struct
     int is_global_scope_declaration;
 } HASH_NODE;
 
+HASH_NODE* hashFalse;
+HASH_NODE* hashTrue;
+
 void hashInit(void);
 int hashAddress(char *value);
 HASH_NODE* hashFind(char *text);

@@ -4,8 +4,9 @@ v1 = float : 23.0;
 a = int: 0;
 
 funct (x = char, y = int, b = bool) = int {
-    v1 = 44 + 25 + 33
-    if (v1 + 22) then {
-        print "oi"
+    if(1 > 2) then {
+        print "iff"
+    } else {
+        print "elsee"
     }
 };

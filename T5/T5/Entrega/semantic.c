@@ -418,9 +418,9 @@ void check_operands(AST *node) {
             ++ SemanticErrors;
         }
 
-        // son[1] deve ser bool
-        if (!is_boolean(node->son[1])) {
-            fprintf(stderr,"SEMANTIC ERROR: 'loop' condition should be a boolean \n");
+        // son[1] deve ser int/float/char
+        if (!is_number(node->son[1])) {
+            fprintf(stderr,"SEMANTIC ERROR: 'loop' condition should be a number \n");
             ++ SemanticErrors;
         }
 
