@@ -1,10 +1,8 @@
 
 g = int[FA2]: 23 5 'c' 1;
 v1 = float : 23.0;
-a = int: 0;
+a = int: 2;
 
 funct (x = char, y = int, b = bool) = int {
-    loop(v1:0, 1, 1) {
-        print 'v'
-    }
+    g[1] = 'c'
 };

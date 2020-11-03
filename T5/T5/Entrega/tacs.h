@@ -4,6 +4,7 @@
 
 #include "hash.h"
 #include "ast.h"
+#include "symbols.h"
 
 #define TAC_SYMBOL                  1
 
@@ -30,6 +31,15 @@
 #define TAC_ARG                     21
 #define TAC_PRINT                   22
 #define TAC_JEQ                     23
+
+#define TAC_AATTR                   24
+#define TAC_RET                     25
+#define TAC_READ                    26
+#define TAC_PARAM                   27
+#define TAC_FBEGIN                  28
+#define TAC_FEND                    29
+#define TAC_VAR                     30
+#define TAC_ARR                     31
 
 
 typedef struct tac_node {

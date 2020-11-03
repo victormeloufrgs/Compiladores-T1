@@ -10,10 +10,18 @@ TAC* makeArrayCall(AST* node, TAC* code0);
 TAC* makeFunctionCall(AST* node, TAC* code0);
 TAC* makeFunctionCallArgs(AST* node, TAC* code0, TAC* code1);
 TAC* makePrint(AST* node, TAC* code0, TAC* code1);
+TAC* makeAttrArray(AST* node, TAC* code0, TAC* code1);
+TAC* makeReturn(AST* node, TAC* code0);
+TAC* makeRead(AST* node);
+TAC* makeParam(AST* node);
 TAC* makeLoop(AST* node, TAC* code0, TAC* code1, TAC* code2, TAC* code3);
 TAC* makeWhile(AST* node, TAC* code0, TAC* code1);
 TAC* makeIfThen(AST* node, TAC* code0, TAC* code1, TAC* code2);
 TAC* makeIfThenElse(AST* node, TAC* code0, TAC* code1, TAC* code2);
+TAC* makeFunctionDecl(AST* node, TAC* code0, TAC* code1, TAC* code2);
+TAC* makeVarDecl(AST* node, TAC* code0, TAC* code1);
+TAC* makeArraySymbDecl(AST* node, TAC* code0, TAC* code1); 
+TAC* makeVarSymbDecl(AST* node, TAC* code0, TAC* code1);
 
 TAC* tacCreate(int type, HASH_NODE* res, HASH_NODE* op1, HASH_NODE* op2) {
     TAC* newtac = 0;
@@ -55,7 +63,13 @@ void tacPrint(TAC* tac) {
         case TAC_ACALL  : fprintf(stderr,"TAC_ACALL"); break;
         case TAC_FCALL  : fprintf(stderr,"TAC_FCALL"); break;
         case TAC_PRINT  : fprintf(stderr,"TAC_PRINT"); break;
-        case TAC_JEQ  : fprintf(stderr,"TAC_JEQ"); break;
+        case TAC_JEQ    : fprintf(stderr,"TAC_JEQ"); break;
+        case TAC_AATTR  : fprintf(stderr,"TAC_AATTR"); break;
+        case TAC_PARAM  : fprintf(stderr,"TAC_PARAM"); break;
+        case TAC_FBEGIN  : fprintf(stderr,"TAC_FBEGIN"); break;
+        case TAC_FEND  : fprintf(stderr,"TAC_FEND"); break;
+        case TAC_VAR  : fprintf(stderr,"TAC_VAR"); break;
+        case TAC_ARR  : fprintf(stderr,"TAC_ARR"); break;
         default         : fprintf(stderr, "TAC_UNKNOWN"); break;
     }
 
@@ -134,48 +148,25 @@ TAC* generateCode(AST* node) {
      
         case AST_LOOP:                  result = makeLoop(node, code[0], code[1], code[2], code[3]); break; 
         case AST_WHILE:                 result = makeWhile(node, code[0], code[1]); break;           
-        case AST_IF_THEN:               result = makeIfThen(node, code[0], code[1], code[2]); break;
+        case AST_IF_THEN:               result = makeIfThen(node, code[0], code[1], code[2]); break; //IF THEN and IF THEN ELSE here
 
         // COMMAND
 
         case AST_PRINT_LIST:
         case AST_PRINT_EXTRA_ELEMS:     result = makePrint(node, code[0], code[1]); break;           
-        // case AST_ATTR_ARRAY: break;
+        case AST_ATTR_ARRAY:            result = makeAttrArray(node, code[0], code[1]); break;
         case AST_ATTR:                  result = tacJoin(code[0], tacCreate(TAC_MOVE, node->symbol, getResFrom(code[0]), 0)); break;
-        // case AST_RETURN: break;
-        // case AST_READ: break;
-        // case AST_CMD_SEQ: break;
-        // case AST_CMD_BLOCK: break;
-
+        case AST_RETURN:                result = makeReturn(node, code[0]); break;
+        case AST_READ:                  result = makeRead(node); break;
 
         // PARAMS:
 
-        // case AST_PARAM: break;
-        // case AST_PARAM_LIST_EXT: break;
-        // case AST_PARAM_LIST: break;
+        case AST_PARAM:                 result = makeParam(node); break;
 
-        // // VALUES:
+        // DECLARATIONS:
 
-        // case AST_VET_VALUES: break;
-        // case AST_VALUE: break;
-
-        // // KEYWORDS:
-
-        // case AST_KW_FLOAT: break;
-        // case AST_KW_INT: break;
-        // case AST_KW_BOOL: break;
-        // case AST_KW_CHAR: break;
-
-        // // TYPES AND VALUES:
-
-        // case AST_TYPE_AND_VALUE: break;
-        // case AST_TYPE_AND_VALUE_ARRAY: break;
-
-        // // DECLARATIONS:
-
-        // case AST_DECL_FUNC: break;
-        // case AST_DECL_VAR: break;
-        // case AST_DECL_LIST: break;
+        case AST_DECL_FUNC:             result = makeFunctionDecl(node, code[0], code[1], code[2]); break;
+        case AST_DECL_VAR:              result = makeVarDecl(node, code[0], code[1]); break;
 
         default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3]))); break;
     }
@@ -264,6 +255,29 @@ TAC* makePrint(AST* node, TAC* code0, TAC* code1) {
     return tacJoin(code0, code1 ? tacJoin(print, code1) : print);
 }
 
+TAC* makeAttrArray(AST* node, TAC* code0, TAC* code1) {
+    if(!node) return 0;
+    
+    TAC* attr = tacCreate(TAC_AATTR, node->symbol, code0->res, code1->res);
+    return tacJoin(code0, tacJoin(code1, attr));
+}
+
+TAC* makeReturn(AST* node, TAC* code0) {
+    TAC* rtrn = tacCreate(TAC_RET, code0->res, 0, 0);
+    return tacJoin(code0, rtrn);
+}
+
+TAC* makeRead(AST* node) {
+    if(!node) return 0;
+    return tacCreate(TAC_READ, node->symbol, 0, 0);
+}
+
+TAC* makeParam(AST* node) {
+    if(!node) return 0;
+    return tacCreate(TAC_PARAM, node->symbol, 0, 0);
+}
+
+
 TAC* makeLoop(AST* node, TAC* code0, TAC* code1, TAC* code2, TAC* code3) {
     /*
         for base to end (OBS: ascendent only)
@@ -350,6 +364,53 @@ TAC* makeIfThenElse(AST* node, TAC* code0, TAC* code1, TAC* code2) {
     TAC* endLabel = tacCreate(TAC_LABEL, endLabelSymbol, 0, 0);
 
     return tacJoin(code0, tacJoin(jFalse, tacJoin(code1, tacJoin(jump, tacJoin(elseLabel, tacJoin(code2, endLabel))))));
+}
+
+
+TAC* makeFunctionDecl(AST* node, TAC* code0, TAC* code1, TAC* code2) {
+    if(!node) return 0;
+
+    TAC* tacBegin = tacCreate(TAC_FBEGIN, node->symbol, 0, 0);
+    TAC* tacEnd = tacCreate(TAC_FEND, 0, 0, 0);
+
+    return tacJoin(tacBegin, tacJoin(code0, tacJoin(code1, tacJoin(code2, tacEnd))));
+}
+
+TAC* makeVarDecl(AST* node, TAC* code0, TAC* code1) {
+    if(!node) return 0;
+
+    
+    
+    switch(node->symbol->type) {
+        case SYMBOL_VECTOR: 
+            return makeArraySymbDecl(node, code0, code1);
+
+        case SYMBOL_VARIABLE: 
+            return makeVarSymbDecl(node, code0, code1);
+    }
+
+    return 0;
+}
+
+// TODO: FALTA ADD INSTRUÇÕES QUE SETAM OS VALORES DO ARRAY NA DECLARAÇÃO DELE (sequência de MOVE)
+TAC* makeArraySymbDecl(AST* node, TAC* code0, TAC* code1) {
+    TAC* decl = 0;
+    decl = tacCreate(TAC_ARR, node->symbol, node->son[0] ? node->son[0]->symbol : 0, 0);
+
+    return tacJoin(code0, tacJoin(decl, code1));
+}
+
+TAC* makeVarSymbDecl(AST* node, TAC* code0, TAC* code1) {
+    TAC* decl = 0;
+    HASH_NODE* maybeValue = 0;
+
+    if(node->son[0])
+        if(node->son[0]->son[1])
+            maybeValue = node->son[0]->son[1]->symbol;
+
+    decl = tacCreate(TAC_VAR, node->symbol, maybeValue, 0);
+
+    return tacJoin(code0, tacJoin(decl, code1));
 }
 
 HASH_NODE *getResFrom(TAC *code) {
