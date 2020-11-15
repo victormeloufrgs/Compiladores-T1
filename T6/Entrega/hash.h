@@ -37,4 +37,6 @@ HASH_NODE* makeTemp(void);
 HASH_NODE* makeLabel(void);
 HASH_NODE* makeIndex(int i);
 
+void printAsm(FILE* fout);
+
 #endif

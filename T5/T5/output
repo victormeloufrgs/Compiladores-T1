@@ -1,7 +1,10 @@
-g = int[FA2];
-v1 = float: 23.0;
-a = int: 2;
+a = int[23]: 2 4 5 5 2 3 4 4 2;
 funct ( x = char , y = int , b = bool ) = int {
 
-g[1] = 'c'
+print funct ('c' , 1 , FALSE ) 
+while (b != FALSE) {
+
+read x
+}
+return 25
 };

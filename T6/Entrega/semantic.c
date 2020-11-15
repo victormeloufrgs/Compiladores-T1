@@ -603,6 +603,9 @@ int get_datatype_of_operator(AST *node) {
 
     if(node == 0)
         return 0;
+
+    if(node->symbol && node->symbol->datatype != 0)
+        return node->symbol->datatype;
     
     if(get_datatype_of_type(node->type) != 0) {
         return get_datatype_of_type(node->type);
