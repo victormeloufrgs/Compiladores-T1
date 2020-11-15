@@ -1,5 +1,8 @@
 #include <stdio.h>
-float a = 0x9.1p1;
+#include <stdbool.h>
+
+char a = 'c';
+bool b = false;
 
 int main() {
 }

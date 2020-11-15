@@ -54,18 +54,27 @@ void generate_TAC_PRINT(FILE* fout, TAC* tac) {
 
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
-    if(tac->res && tac->op1->type == SYMBOL_LIT_FLOAT) {
-        char buffer[512] = "";
+    if (tac->res) {
 
-        float decimalFloat = hexFloatToDecimalFloat(tac->op1 ? tac->op1->text : "0");
+        
+        if (tac->op1->type == SYMBOL_LIT_FLOAT) {
+            char buffer[512] = "";
+            float decimalFloat = hexFloatToDecimalFloat(tac->op1 ? tac->op1->text : "0");
+            char* floatIEEE = getIEEE(buffer, decimalFloat);
+            sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, floatIEEE ? floatIEEE : "0");
 
-        char* floatIEEE = getIEEE(buffer, decimalFloat);
-        printf("\n\n FLOATIEEEE: %s", floatIEEE);
-        sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, floatIEEE ? floatIEEE : "0");
+        } else if (tac->op1->type == SYMBOL_LIT_CHAR) {
+            sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, tac->op1 ? tac->op1->text[1] : 0);
+            
+        } else if (tac->op1->type == SYMBOL_LIT_TRUE || tac->op1->type == SYMBOL_LIT_FALSE) {
+            int bool_value = tac->op1->type == SYMBOL_LIT_TRUE ? 1 : 0;
+            sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, bool_value);
 
-    } else {
-        int decimalValue = toDeci(tac->op1 ? tac->op1->text : "0", 16, 1);
-        sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, decimalValue);
+        } else {
+            int value = toDeci(tac->op1 ? tac->op1->text : "0", 16, 1);
+            sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, value);
+        }
+
     }
     data_section = concat_string(data_section, addition);
 

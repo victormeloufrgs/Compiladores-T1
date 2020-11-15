@@ -1,4 +1,4 @@
-c = int: 9.1;
+b = bool: FALSE;
 main ( ) = int {
 
 };

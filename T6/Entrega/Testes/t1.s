@@ -17,8 +17,9 @@ _main:                                  ## @main
                                         ## -- End function
 	.section	__DATA,__data
 	.globl	_a                      ## @a
-	.p2align	2
 _a:
-	.long	1091633152              ## float 9.0625
+	.byte	99                      ## 0x63
 
+	.globl	_b                      ## @b
+.zerofill __DATA,__common,_b,1,0
 .subsections_via_symbols
