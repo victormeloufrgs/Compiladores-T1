@@ -8,8 +8,6 @@ Matrícula:  00285640
 #include <stdlib.h>
 #include "symbols.h"
 
-HASH_NODE *hash_table[HASH_SIZE];
-
 void hashInit(void) 
 {
     int i;
@@ -113,22 +111,4 @@ HASH_NODE* makeLabel(void) {
 
     sprintf(buffer, "1label_%d",serial++);
     return hashInsert(buffer, SYMBOL_LABEL);
-}
-
-void printAsm(FILE* fout) {
-    int i = 0;
-    HASH_NODE* node;
-    fprintf(fout,"## DATA SECTION\n"
-    "\t.section     __DATA,__data\n");
-    for(i=0; i < HASH_SIZE; i++) {
-        node = hash_table[i];
-        if(node == NULL) continue;
-
-        do {
-            if(node->type == SYMBOL_VARIABLE)
-                fprintf(fout, "\n_%s:\t.long\t0", node->text);
-            node = node->next;
-        } while(node != NULL);
-
-    }
 }

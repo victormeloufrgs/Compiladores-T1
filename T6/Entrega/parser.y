@@ -8,6 +8,7 @@ Matrícula:  00285640
     #include "hash.h"
     #include "semantic.h"
     #include "tacs.h"
+    #include "assembler.h"
 
     void yyerror(const char *s);
     int getLineNumber();

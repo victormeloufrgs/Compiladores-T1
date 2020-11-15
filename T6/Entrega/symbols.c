@@ -26,10 +26,11 @@ const char* getSymbolName(int symbol) {
 
 const char* getDataTypeName(int datatype) {
     switch (datatype) {
-        case DATATYPE_BOOL: return "DATATYPE_BOOL ";
-        case DATATYPE_CHAR: return "DATATYPE_CHAR ";
-        case DATATYPE_FLOAT: return "DATATYPE_FLOAT";
-        case DATATYPE_INT: return "DATATYPE_INT  ";
+        case DATATYPE_BOOL: return "DATATYPE_BOOL  ";
+        case DATATYPE_CHAR: return "DATATYPE_CHAR  ";
+        case DATATYPE_FLOAT: return "DATATYPE_FLOAT ";
+        case DATATYPE_INT: return "DATATYPE_INT   ";
+        case DATATYPE_STRING: return "DATATYPE_STRING";
         default: return "__UNDEFINED__ ";
     }
 }

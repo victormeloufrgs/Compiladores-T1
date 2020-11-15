@@ -60,9 +60,4 @@ TAC* tacJoin(TAC* l1, TAC* l2);
 
 TAC* generateCode(AST* node);
 
-// ASM GENERATION
-
-TAC* tacReverse(TAC* tac);
-void generateAsm(TAC* first);
-
 #endif

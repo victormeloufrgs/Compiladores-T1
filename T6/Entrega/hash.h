@@ -24,6 +24,8 @@ typedef struct hash_node_struct
     int is_global_scope_declaration;
 } HASH_NODE;
 
+HASH_NODE *hash_table[HASH_SIZE];
+
 HASH_NODE* hashFalse;
 HASH_NODE* hashTrue;
 
@@ -36,7 +38,5 @@ int hash_check_undeclared(void);
 HASH_NODE* makeTemp(void);
 HASH_NODE* makeLabel(void);
 HASH_NODE* makeIndex(int i);
-
-void printAsm(FILE* fout);
 
 #endif
