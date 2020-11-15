@@ -1,5 +1,5 @@
-x = int: 1;
+v = float: 2.2;
+c = int: 123;
 main ( ) = int {
 
-print x + 2 - 3 
 };

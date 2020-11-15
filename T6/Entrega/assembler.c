@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include "bin_formatter.h"
 #include "assembler.h"
 
 TAC* tacReverse(TAC* tac) {
@@ -9,14 +10,6 @@ TAC* tacReverse(TAC* tac) {
 
     return t;
 }
-
-char *concat_string(char* string, char* addition) {
-	char* newStr = malloc(strlen(string)+strlen(addition)+1);
-	newStr = strcpy(newStr, string);
-	strcat(newStr, addition);
-	return newStr;
-}
-
 
 void generateFixedInit(FILE* fout) {
     fprintf(fout,   "## FIXED INIT\n"
@@ -59,8 +52,27 @@ void generate_TAC_PRINT(FILE* fout, TAC* tac) {
     );
 }
 
-void generate_TAC_VAR(FILE* fout, TAC* tac) {
+char* generate_TAC_VAR(char* data_section, TAC* tac) {
+    char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
+    if(tac->res && tac->op1->type == SYMBOL_LIT_FLOAT) {
+        // char* mode = malloc(strlen(tac->op1->text)+1);
+        // strcpy(mode, tac->op1->text);
+        // mode = strtok(mode, ".");
 
+        // sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, tac->op1 ? mode : "0");
+
+        char buffer[512] = "";
+        char* floatIEEE = getIEEE(buffer, atof(tac->op1->text));
+
+        sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, floatIEEE ? floatIEEE : "0");
+
+    } else {
+        sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, tac->op1 ? tac->op1->text : "0");
+    }
+    data_section = concat_string(data_section, addition);
+
+    free(addition);
+    return data_section;
 }
 
 char* generateDATA_SECTION() {
@@ -92,19 +104,19 @@ char* generateDATA_SECTION() {
 void generateAsm(TAC* first) {
     TAC* tac;
     FILE* fout;
+    char* addition;
     fout = fopen("out.s", "w");
 
     char* data_section = generateDATA_SECTION();
 
     // Init
     generateFixedInit(fout);
-	char *addition;
 
     // Each Tac
     for (tac = first; tac; tac = tac->next) {
         switch(tac->type) {
 			case TAC_SYMBOL: break;
-			case TAC_VAR: generate_TAC_VAR(fout, tac); break;
+			case TAC_VAR: data_section = generate_TAC_VAR(data_section, tac); break;
             case TAC_FBEGIN: generate_TAC_FBEGIN(fout, tac); break;
             case TAC_FEND: generate_TAC_FEND(fout); break;
             case TAC_PRINT: generate_TAC_PRINT(fout, tac); break;

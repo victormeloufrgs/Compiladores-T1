@@ -1,8 +1,5 @@
 #include <stdio.h>
-int a = 6;
-int b = 1;
+float a = 2.2f;
 
-int main() { 
-    a = a + b;
-    printf("%d", a);
+int main() {
 }
