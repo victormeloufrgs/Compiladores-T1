@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-char a = 'c';
-bool b = false;
+int a[2] =  {1, 2};
 
 int main() {
 }

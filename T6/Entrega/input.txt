@@ -1,4 +1,6 @@
-b = bool: FALSE;
+b = bool[2]: FALSE TRUE;
+c = int: 10;
 
 main () = int {
+    b[1] = TRUE
 };

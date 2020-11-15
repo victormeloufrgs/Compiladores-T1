@@ -15,4 +15,4 @@ _main:
 ## DATA SECTION
 	.section	__DATA,__data
 
-_b:	.long	0
+_c:	.long	16

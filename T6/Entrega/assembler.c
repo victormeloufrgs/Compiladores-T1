@@ -55,7 +55,6 @@ void generate_TAC_PRINT(FILE* fout, TAC* tac) {
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
     if (tac->res) {
-
         
         if (tac->op1->type == SYMBOL_LIT_FLOAT) {
             char buffer[512] = "";
@@ -74,8 +73,8 @@ char* generate_TAC_VAR(char* data_section, TAC* tac) {
             int value = toDeci(tac->op1 ? tac->op1->text : "0", 16, 1);
             sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, value);
         }
-
     }
+
     data_section = concat_string(data_section, addition);
 
     free(addition);
