@@ -20,7 +20,9 @@ typedef union {
 } myfloat; 
 
 char *concat_string(char* string, char* addition);
-int bin_to_decimal(long long n);
+float hexFloatToDecimalFloat(char *hexFloat);
+float toDeci(char *str, int base, int floating_length);
+char* fromDeci(char res[], int base, int inputNum);
 char* getIEEE(char* buffer, float var);
 char* getBinary(char* buffer, int n, int i);
 

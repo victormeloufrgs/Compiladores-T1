@@ -1,5 +1,5 @@
 #include <stdio.h>
-float a = 2.2f;
+float a = 0x9.1p1;
 
 int main() {
 }

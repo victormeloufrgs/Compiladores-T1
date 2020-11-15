@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "bin_formatter.h"
+#include "val_converters.h"
 
 myfloat myfloat_from_float(float f) {
     myfloat mf;
@@ -53,16 +53,53 @@ void strev(char *str)
         str[i] = str[len-i-1]; 
         str[len-i-1] = temp; 
     } 
-} 
+}
+
+float hexFloatToDecimalFloat(char *hexFloat) {
+    // pegar indice do ponto "."
+
+    char *dot;
+    int dot_index;
+
+
+    dot = strchr(hexFloat, '.');
+    dot_index = (int)(dot - hexFloat);
+
+    int tam_parte_inteira = dot_index;
+    int tam_parte_flutuante = strlen(hexFloat) - (dot_index+1);
+
+    // separa o que tá antes e o que tá depois do dot_index
+    char* val_hex_parte_inteira_str = malloc(sizeof(char) * tam_parte_inteira);
+    char* val_hex_parte_flutuante_str = malloc(sizeof(char)* tam_parte_flutuante);
+
+    sprintf(val_hex_parte_inteira_str, "");
+    sprintf(val_hex_parte_flutuante_str, "");
+
+    val_hex_parte_inteira_str = strncat(val_hex_parte_inteira_str, &hexFloat[0], tam_parte_inteira);
+    val_hex_parte_flutuante_str = strncat(val_hex_parte_flutuante_str, &hexFloat[dot_index+1], tam_parte_flutuante);
+
+    // tudo que tá antes do ponto, vira um float
+    char val_deci_parte_inteira_str[256];
+    sprintf(val_deci_parte_inteira_str, "%f", toDeci(val_hex_parte_inteira_str, 16, 1));
+    double val_inteiro = atof(val_deci_parte_inteira_str);
+
+    // tudo que tá depois do ponto, vira um float * 1/(10^tam_parte_flutuante)
+    char val_deci_parte_flutuante_str[256];
+    sprintf(val_deci_parte_flutuante_str, "%f", toDeci(val_hex_parte_flutuante_str, 16, -tam_parte_flutuante));
+    double val_flutuante = atof(val_deci_parte_flutuante_str);
+
+    printf("\n\nHEX as Decimal: %f\n\n",val_inteiro+val_flutuante);
+    return val_inteiro + val_flutuante;
+}
 
 // Function to convert a number from given base 'b' 
 // to decimal 
-int toDeci(char *str, int base) 
+float toDeci(char *str, int base, int floating_length) 
 { 
 
     int len = strlen(str); 
-    int power = 1; // Initialize power of base 
-    int num = 0;  // Initialize result 
+    int power = floating_length == 0 ? 1 : floating_length; // Initialize power of base 
+    float num = 0;  // Initialize result 
     int i; 
   
     // Decimal equivalent is str[len-1]*1 + 
@@ -76,9 +113,15 @@ int toDeci(char *str, int base)
            printf("Invalid Number"); 
            return -1; 
         } 
-  
-        num += val(str[i]) * power; 
-        power = power * base; 
+
+        if(power < 1) {
+            printf("\n\npower: %d\n\n", power);
+            num += val(str[i])/pow(base,-power);
+            power = power * base;
+        } else {
+            num += val(str[i]) * power; 
+            power = power * base;
+        } 
     } 
   
     return num; 
@@ -108,7 +151,6 @@ char* fromDeci(char res[], int base, int inputNum)
 
 char* getBinary(char* buffer, int n, int i) 
 { 
-  
     // Returns the binary representation 
     // of a number n up to i-bits. 
     int k;
@@ -118,10 +160,7 @@ char* getBinary(char* buffer, int n, int i)
             buffer = concat_string(buffer, "1");
         else
             buffer = concat_string(buffer, "0");
-    } 
-
-
-    printf("\n\nbinary: %s\n\n", buffer);
+    }
 
     return buffer;
 }
@@ -144,9 +183,7 @@ char* getIEEE(char* buffer, float var)
 
     buffer = concat_string(buffer, getBinary(temp_buffer2, mf.raw.mantissa, 23));
     
-    sprintf(buffer, "%d", toDeci(buffer,2));
-
-    printf("\n\ndecimal: %s\n\n", buffer);
+    sprintf(buffer, "%d", (int)toDeci(buffer,2,1));
 
     return buffer;
 } 

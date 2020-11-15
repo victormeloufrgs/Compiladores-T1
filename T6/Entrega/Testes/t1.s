@@ -19,6 +19,6 @@ _main:                                  ## @main
 	.globl	_a                      ## @a
 	.p2align	2
 _a:
-	.long	1074580685              ## float 2.20000005
+	.long	1091633152              ## float 9.0625
 
 .subsections_via_symbols

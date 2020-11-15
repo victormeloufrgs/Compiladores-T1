@@ -1,8 +1,8 @@
 # Aluno:      Victor dos Santos Melo
 # Matrícula:  00285640
 
-etapa5: main.o y.tab.o lex.yy.o symbols.o hash.o ast.o semantic.o tacs.o bin_formatter.o assembler.o
-	gcc main.o y.tab.o lex.yy.o symbols.o hash.o ast.o semantic.o tacs.o bin_formatter.o assembler.o -o etapa6
+etapa5: main.o y.tab.o lex.yy.o symbols.o hash.o ast.o semantic.o tacs.o val_converters.o assembler.o
+	gcc main.o y.tab.o lex.yy.o symbols.o hash.o ast.o semantic.o tacs.o val_converters.o assembler.o -o etapa6
 
 symbols.o: symbols.c
 	gcc -c symbols.c
@@ -19,8 +19,8 @@ hash.o: hash.c
 tacs.o: tacs.c
 	gcc -c tacs.c
 
-bin_formatter.o: bin_formatter.c
-	gcc -c bin_formatter.c
+val_converters.o: val_converters.c
+	gcc -c val_converters.c
 
 assembler.o: assembler.c
 	gcc -c assembler.c

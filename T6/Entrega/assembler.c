@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include "bin_formatter.h"
+#include "val_converters.h"
 #include "assembler.h"
 
 TAC* tacReverse(TAC* tac) {
@@ -55,19 +55,17 @@ void generate_TAC_PRINT(FILE* fout, TAC* tac) {
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
     if(tac->res && tac->op1->type == SYMBOL_LIT_FLOAT) {
-        // char* mode = malloc(strlen(tac->op1->text)+1);
-        // strcpy(mode, tac->op1->text);
-        // mode = strtok(mode, ".");
-
-        // sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, tac->op1 ? mode : "0");
-
         char buffer[512] = "";
-        char* floatIEEE = getIEEE(buffer, atof(tac->op1->text));
 
+        float decimalFloat = hexFloatToDecimalFloat(tac->op1 ? tac->op1->text : "0");
+
+        char* floatIEEE = getIEEE(buffer, decimalFloat);
+        printf("\n\n FLOATIEEEE: %s", floatIEEE);
         sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, floatIEEE ? floatIEEE : "0");
 
     } else {
-        sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, tac->op1 ? tac->op1->text : "0");
+        int decimalValue = toDeci(tac->op1 ? tac->op1->text : "0", 16, 1);
+        sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, decimalValue);
     }
     data_section = concat_string(data_section, addition);
 

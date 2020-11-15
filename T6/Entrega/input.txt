@@ -1,5 +1,4 @@
-v = float: 2.2;
-c = int: 123;
+c = int: 9.1;
 
 main () = int {
 };

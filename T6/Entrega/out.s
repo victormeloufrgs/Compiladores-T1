@@ -15,5 +15,4 @@ _main:
 ## DATA SECTION
 	.section	__DATA,__data
 
-_v:	.long	1074580685
-_c:	.long	123
+_c:	.long	1091633152
