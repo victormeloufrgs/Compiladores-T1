@@ -88,7 +88,6 @@ float hexFloatToDecimalFloat(char *hexFloat) {
     sprintf(val_deci_parte_flutuante_str, "%f", toDeci(val_hex_parte_flutuante_str, 16, -tam_parte_flutuante));
     double val_flutuante = atof(val_deci_parte_flutuante_str);
 
-    printf("\n\nHEX as Decimal: %f\n\n",val_inteiro+val_flutuante);
     return val_inteiro + val_flutuante;
 }
 
@@ -115,7 +114,6 @@ float toDeci(char *str, int base, int floating_length)
         } 
 
         if(power < 1) {
-            printf("\n\npower: %d\n\n", power);
             num += val(str[i])/pow(base,-power);
             power = power * base;
         } else {

@@ -2,6 +2,12 @@
 #include "val_converters.h"
 #include "assembler.h"
 
+char* get_as_assembly_data(char* data, int type, char* buffer);
+char* get_char_as_assembly_data(char* data, char* buffer);
+char* get_float_as_assembly_data(char* data, char* buffer);
+char* get_integer_as_assembly_data(char* data, char* buffer);
+
+
 TAC* tacReverse(TAC* tac) {
     TAC* t = tac;
 
@@ -54,31 +60,33 @@ void generate_TAC_PRINT(FILE* fout, TAC* tac) {
 
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
+
     if (tac->res) {
-        
-        if (tac->op1->type == SYMBOL_LIT_FLOAT) {
-            char buffer[512] = "";
-            float decimalFloat = hexFloatToDecimalFloat(tac->op1 ? tac->op1->text : "0");
-            char* floatIEEE = getIEEE(buffer, decimalFloat);
-            sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, floatIEEE ? floatIEEE : "0");
+        char buffer[512] = "";
+        char* val = get_as_assembly_data(tac->op1 ? tac->op1->text : 0, tac->op1->type, buffer);
+        sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, val);
+    }
+    data_section = concat_string(data_section, addition);
+    free(addition);
 
-        } else if (tac->op1->type == SYMBOL_LIT_CHAR) {
-            sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, tac->op1 ? tac->op1->text[1] : 0);
-            
-        } else if (tac->op1->type == SYMBOL_LIT_TRUE || tac->op1->type == SYMBOL_LIT_FALSE) {
-            int bool_value = tac->op1->type == SYMBOL_LIT_TRUE ? 1 : 0;
-            sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, bool_value);
+    return data_section;
+}
 
-        } else {
-            int value = toDeci(tac->op1 ? tac->op1->text : "0", 16, 1);
-            sprintf(addition, "_%s:\t.long\t%d\n", tac->res->text, value);
-        }
+char* generate_TAC_ARR(char* data_section, TAC* tac) {
+    char* str = malloc(+1 +strlen(tac->res->text) +3);
+    sprintf(str, "_%s:\n", tac->res->text);
+
+    int i;
+    TAC* elem = tac->next;
+    for(i = 0; i < atoi(tac->op1->text); i++) {
+        char* tail = malloc(+1 +strlen(elem->res->text) +9);
+        sprintf(tail, "\t.long\t%s\n", elem->op2->text);
+        str = concat_string(str, tail);
+        free(tail);
+        elem = elem->next;
     }
 
-    data_section = concat_string(data_section, addition);
-
-    free(addition);
-    return data_section;
+    return str;
 }
 
 char* generateDATA_SECTION() {
@@ -126,10 +134,39 @@ void generateAsm(TAC* first) {
             case TAC_FBEGIN: generate_TAC_FBEGIN(fout, tac); break;
             case TAC_FEND: generate_TAC_FEND(fout); break;
             case TAC_PRINT: generate_TAC_PRINT(fout, tac); break;
+            case TAC_ARR: data_section = generate_TAC_ARR(data_section, tac); break;
         }
     }
 
     // Hash Table
     fprintf(fout, "%s", data_section);
     fclose(fout);
+}
+
+char* get_as_assembly_data(char* data, int type, char* buffer) {
+    switch (type) {
+        case SYMBOL_LIT_CHAR: return get_char_as_assembly_data(data, buffer);
+        case SYMBOL_LIT_FALSE: return "0";
+        case SYMBOL_LIT_FLOAT: return get_float_as_assembly_data(data, buffer);
+        case SYMBOL_LIT_INTEGER: return get_integer_as_assembly_data(data, buffer);
+        case SYMBOL_LIT_TRUE: return "1";
+        default:  return "0";
+    }
+}
+
+char* get_char_as_assembly_data(char* data, char* buffer) {
+    int response = data ? data[1] : 0;
+    sprintf(buffer, "%d", response);
+    return buffer;
+}
+
+char* get_float_as_assembly_data(char* data, char* buffer) {
+    float response = hexFloatToDecimalFloat(data ? data : "0");
+    return getIEEE(buffer, response);
+}
+
+char* get_integer_as_assembly_data(char* data, char* buffer) {
+    float response = toDeci(data? data : "0", 16, 1);
+    sprintf(buffer, "%d", (int)response);
+    return buffer;
 }

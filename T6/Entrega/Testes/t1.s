@@ -16,10 +16,9 @@ _main:                                  ## @main
 	.cfi_endproc
                                         ## -- End function
 	.section	__DATA,__data
-	.globl	_a                      ## @a
+	.globl	_f                      ## @f
 	.p2align	2
-_a:
-	.long	1
-	.long	2
+_f:
+	.long	1092681728              ## float 10.0625
 
 .subsections_via_symbols
