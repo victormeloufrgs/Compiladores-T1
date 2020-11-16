@@ -1,5 +1,6 @@
 
 #include "tacs.h"
+#include "semantic.h"
 
 HASH_NODE *getResFrom(TAC *code);
 TAC* makeArithmetic(AST* node, TAC* code0, TAC* code1);
@@ -188,8 +189,10 @@ TAC* makeArithmetic(AST* node, TAC* code0, TAC* code1) {
         case AST_MULT:  tac_operator = TAC_MULT; break;
         case AST_DIV:   tac_operator = TAC_DIV; break;
     }
+    
+    HASH_NODE* temp = makeTemp(get_datatype_of_operator(node));
 
-    return tacJoin(tacJoin(code0, code1), tacCreate(tac_operator, makeTemp(), getResFrom(code0), getResFrom(code1)));
+    return tacJoin(tacJoin(code0, code1), tacCreate(tac_operator, temp, getResFrom(code0), getResFrom(code1)));
 }
 
 
@@ -197,7 +200,7 @@ TAC* makeBoolean(AST* node, TAC* code0, TAC* code1) {
 
     HASH_NODE* label1 = makeLabel();
     HASH_NODE* label2 = makeLabel();
-    HASH_NODE* temp = makeTemp();
+    HASH_NODE* temp = makeTemp(0);
 
     TAC* branch;
     TAC* mov0      = tacCreate(TAC_MOVE, temp, hashFalse, 0);
@@ -224,21 +227,21 @@ TAC* makeBoolean(AST* node, TAC* code0, TAC* code1) {
 
 
 TAC* makeLogical(AST* node, TAC* code0, TAC* code1) {
-    HASH_NODE* temp = makeTemp();
+    HASH_NODE* temp = makeTemp(0);
 
     TAC* logical = tacCreate(node->type == AST_AND ? TAC_AND : TAC_OR, temp, code0->res, code1->res);
     return tacJoin(code0, tacJoin(code1, logical));
 }
 
 TAC* makeNot(AST* node, TAC* code0) {
-    TAC* not = tacCreate(TAC_NOT, makeTemp(), code0->res, 0);
+    TAC* not = tacCreate(TAC_NOT, makeTemp(0), code0->res, 0);
     return tacJoin(code0, not);
 }
 
 
 TAC* makeArrayCall(AST* node, TAC* code0) {
     if(!node || !node->son[0]) return code0;
-    return tacJoin(code0, tacCreate(TAC_ACALL, makeTemp(), node->symbol, node->son[0]->symbol));
+    return tacJoin(code0, tacCreate(TAC_ACALL, makeTemp(0), node->symbol, node->son[0]->symbol));
 }
 
 
@@ -299,7 +302,7 @@ TAC* makeLoop(AST* node, TAC* code0, TAC* code1, TAC* code2, TAC* code3) {
 
     HASH_NODE* beginLabelSymbol = makeLabel();
     HASH_NODE* endLabelSymbol = makeLabel();
-    HASH_NODE* temp = makeTemp();
+    HASH_NODE* temp = makeTemp(0);
 
     TAC* move = tacCreate(TAC_MOVE, temp, code0->res, 0);
     TAC* beginLabel = tacCreate(TAC_LABEL, beginLabelSymbol, 0, 0);

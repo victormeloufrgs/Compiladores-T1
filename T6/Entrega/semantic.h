@@ -24,5 +24,6 @@ int get_datatype_of_vet_decl(AST *node);
 int get_datatype_of_func_decl(AST *node);
 int get_datatype_of_type(int kw);
 int get_datatype_of_type(int kw);
+int get_datatype_of_operator(AST *node);
 
 #endif

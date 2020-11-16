@@ -95,7 +95,9 @@ HASH_NODE* makeTemp(int datatype) {
     char buffer[256] = "";
 
     sprintf(buffer, "1temp_%d",serial++);
-    return hashInsert(buffer, SYMBOL_VARIABLE);
+    HASH_NODE* result_node = hashInsert(buffer, SYMBOL_VARIABLE);
+    result_node->datatype = datatype;
+    return result_node;
 }
 
 HASH_NODE* makeIndex(int i) {

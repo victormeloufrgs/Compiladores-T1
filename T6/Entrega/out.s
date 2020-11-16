@@ -39,12 +39,13 @@ _main:
 	callq	_printf
 ## TAC_DIV_FLOAT
 	movss	_5.0(%rip), %xmm0
-	divss	_2(%rip), %xmm0
+	divss	_2.0(%rip), %xmm0
+	cvtss2sd %xmm0, %xmm0
 	movss	%xmm0, _1temp_3(%rip)
-## TAC_PRINT_INT
-	leaq	printintstr(%rip), %rdi
+## TAC_PRINT_FLOAT
+	leaq	printfloatstr(%rip), %rdi
 	movl	_1temp_3(%rip), %esi
-	movb	$0, %al
+	movb	$1, %al
 	callq	_printf
 ## TAC_FEND
 	popq	%rbp
@@ -57,6 +58,7 @@ _5:	.long	5
 _0:	.long	0
 _1:	.long	1
 _10:	.long	16
+_2.0:	.long	1073741824
 _5.0:	.long	1084227584
 _1temp_0:	.long	0
 _1temp_1:	.long	0

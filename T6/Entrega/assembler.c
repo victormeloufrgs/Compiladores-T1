@@ -97,7 +97,7 @@ void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac) {
             "## TAC_PRINT_FLOAT\n"
             "\tleaq	printfloatstr(%%rip), %%rdi\n"
             "\tmovl	_%s(%%rip), %%esi\n"
-            "\tmovb	$0, %%al\n"
+            "\tmovb	$1, %%al\n"
             "\tcallq	_printf\n", 
             tac->res ? tac->res->text : 0
     );
@@ -224,6 +224,7 @@ void generate_TAC_DIV_FLOAT(FILE* fout, TAC* tac) {
             "## TAC_DIV_FLOAT\n"
             "\tmovss\t_%s(%%rip), %%xmm0\n"
             "\tdivss\t_%s(%%rip), %%xmm0\n"
+            "\tcvtss2sd %%xmm0, %%xmm0\n"
             "\tmovss\t%%xmm0, _%s(%%rip)\n",
             tac->op1->text, 
             tac->op2->text,
@@ -246,7 +247,7 @@ char* generateDATA_SECTION() {
         char buffer[256];
 
         do {
-            bool is_temp = node->type == SYMBOL_VARIABLE && node->datatype == 0;
+            bool is_temp = node->type == SYMBOL_VARIABLE && strstr(node->text,"1temp");
             if(is_temp || is_lit(node->type)) {
 			    char *addition = (char *)malloc(+1 +2*strlen(hash_table[i]->text) +10);
                 sprintf(addition, "_%s:\t.long\t%s\n", node->text, is_lit(node->type) ? get_as_assembly_data(node->text, node->type, buffer) : "0");

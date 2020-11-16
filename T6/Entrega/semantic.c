@@ -34,7 +34,6 @@ void verify_attr_var_operator(AST *node);
 
 
 int get_datatype_of_param(AST *node);
-int get_datatype_of_operator(AST *node);
 bool is_compatible_datatypes(int d1, int d2);
 bool is_valid_attr(int identifier_datatype, AST *expr);
 

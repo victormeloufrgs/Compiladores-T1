@@ -5,5 +5,5 @@ float a = 5.0;
 float b = 2.0;
 
 int main() {
-    a = a/b;
+    printf("%f\n", a/b);
 }
