@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-float f = 0xA.1p0;
+float a = 5.0;
+float b = 2.0;
 
 int main() {
+    a = a/b;
 }

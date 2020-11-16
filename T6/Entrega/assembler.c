@@ -7,6 +7,16 @@ char* get_char_as_assembly_data(char* data, char* buffer);
 char* get_float_as_assembly_data(char* data, char* buffer);
 char* get_integer_as_assembly_data(char* data, char* buffer);
 
+bool is_float(HASH_NODE* hash_node);
+bool is_string(HASH_NODE* hash_node);
+
+void generate_TAC_DIV_FLOAT(FILE* fout, TAC* tac);
+void generate_TAC_DIV_INT(FILE* fout, TAC* tac);
+
+void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac);
+void generate_TAC_PRINT_STR(FILE* fout, TAC* tac);
+void generate_TAC_PRINT_INT(FILE* fout, TAC* tac);
+
 
 TAC* tacReverse(TAC* tac) {
     TAC* t = tac;
@@ -17,10 +27,15 @@ TAC* tacReverse(TAC* tac) {
     return t;
 }
 
+bool is_lit(int type) {
+    return type == SYMBOL_LIT_CHAR || type == SYMBOL_LIT_FALSE || type == SYMBOL_LIT_INTEGER || type == SYMBOL_LIT_FLOAT || type == SYMBOL_LIT_STRING || type == SYMBOL_LIT_TRUE;
+}
+
 void generateFixedInit(FILE* fout) {
     fprintf(fout,   "## FIXED INIT\n"
                     "\t.section	__TEXT,__cstring,cstring_literals\n"
                     "\tprintintstr: .asciz	\"%%d\\n\"\n"
+                    "\tprintfloatstr: .asciz	\"%%f\\n\"\n"
                     "\tprintstringstr: .asciz	\"%%s\\n\"\n"
                     "\n"
                     "\t.section	__TEXT,__text,regular,pure_instructions\n"
@@ -48,8 +63,49 @@ void generate_TAC_FEND(FILE* fout) {
 }
 
 void generate_TAC_PRINT(FILE* fout, TAC* tac) {
+
+    if(is_float(tac->res)) {
+        printf("\nentered generate_TAC_PRINT_FLOAT\n\n");
+
+        generate_TAC_PRINT_FLOAT(fout, tac);
+
+    } else if (is_string(tac->res)) {
+        printf("\nentered generate_TAC_PRINT_STR\n\n");
+        generate_TAC_PRINT_STR(fout, tac);
+
+    } else {
+        printf("entered generate_TAC_PRINT_INT\n");
+        generate_TAC_PRINT_INT(fout, tac);
+    }
+
+    
+}
+
+void generate_TAC_PRINT_STR(FILE* fout, TAC* tac) {
     fprintf(fout,
-            "## TAC_PRINTINT\n"
+            "## TAC_PRINT_STRING\n"
+            "\tleaq	printstringstr(%%rip), %%rdi\n"
+            "\tmovl	_%s(%%rip), %%esi\n"
+            "\tmovb	$0, %%al\n"
+            "\tcallq	_printf\n", 
+            tac->res ? tac->res->text : 0
+    );
+}
+
+void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac) {
+    fprintf(fout,
+            "## TAC_PRINT_FLOAT\n"
+            "\tleaq	printfloatstr(%%rip), %%rdi\n"
+            "\tmovl	_%s(%%rip), %%esi\n"
+            "\tmovb	$0, %%al\n"
+            "\tcallq	_printf\n", 
+            tac->res ? tac->res->text : 0
+    );
+}
+
+void generate_TAC_PRINT_INT(FILE* fout, TAC* tac) {
+    fprintf(fout,
+            "## TAC_PRINT_INT\n"
             "\tleaq	printintstr(%%rip), %%rdi\n"
             "\tmovl	_%s(%%rip), %%esi\n"
             "\tmovb	$0, %%al\n"
@@ -57,6 +113,7 @@ void generate_TAC_PRINT(FILE* fout, TAC* tac) {
             tac->res ? tac->res->text : 0
     );
 }
+
 
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
@@ -75,12 +132,14 @@ char* generate_TAC_VAR(char* data_section, TAC* tac) {
 char* generate_TAC_ARR(char* data_section, TAC* tac) {
     char* str = malloc(+1 +strlen(tac->res->text) +3);
     sprintf(str, "_%s:\n", tac->res->text);
-
+    
     int i;
     TAC* elem = tac->next;
     for(i = 0; i < atoi(tac->op1->text); i++) {
-        char* tail = malloc(+1 +strlen(elem->res->text) +9);
-        sprintf(tail, "\t.long\t%s\n", elem->op2->text);
+        char buffer[256];
+        char* data = get_as_assembly_data(elem->op2->text, elem->op2->type, buffer);
+        char* tail = malloc(8 + strlen(data));
+        sprintf(tail, "\t.long\t%s\n", data);
         str = concat_string(str, tail);
         free(tail);
         elem = elem->next;
@@ -88,6 +147,90 @@ char* generate_TAC_ARR(char* data_section, TAC* tac) {
 
     return str;
 }
+
+void generate_TAC_ADD(FILE* fout, TAC* tac) { 
+        fprintf(fout, 
+                "## TAC_ADD\n"
+                "\tmovl\t_%s(%%rip), %%eax\n"
+                "\taddl\t_%s(%%rip), %%eax\n"
+                "\tmovl\t%%eax, _%s(%%rip)\n",
+                tac->op1->text, 
+                tac->op2->text,
+                tac->res->text
+        );
+}
+
+void generate_TAC_SUB(FILE* fout, TAC* tac) { 
+        fprintf(fout, 
+                "## TAC_SUB\n"
+                "\tmovl\t_%s(%%rip), %%eax\n"
+                "\tsubl\t_%s(%%rip), %%eax\n"
+                "\tmovl\t%%eax, _%s(%%rip)\n",
+                tac->op1->text, 
+                tac->op2->text,
+                tac->res->text
+        );
+}
+
+
+void generate_TAC_MULT(FILE* fout, TAC* tac) { 
+        fprintf(fout, 
+                "## TAC_MUL\n"
+                "\tmovl\t_%s(%%rip), %%eax\n"
+                "\timull\t_%s(%%rip), %%eax\n"
+                "\tmovl\t%%eax, _%s(%%rip)\n",
+                tac->op1->text, 
+                tac->op2->text,
+                tac->res->text
+        );
+}
+
+bool is_float(HASH_NODE* hash_node) {
+    printf("\n\n%s\n", hash_node->text);
+    printf("is SYMBOL_LIT_FLOAT == %d | is DATATYPE_FLOAT == %d\n\n", hash_node->type == SYMBOL_LIT_FLOAT, hash_node->datatype == DATATYPE_FLOAT);
+    return hash_node->type == SYMBOL_LIT_FLOAT || hash_node->datatype == DATATYPE_FLOAT;
+}
+
+bool is_string(HASH_NODE* hash_node) {
+    return hash_node->type == SYMBOL_LIT_STRING || hash_node->datatype == DATATYPE_STRING;
+}
+
+void generate_TAC_DIV(FILE* fout, TAC* tac) {
+        
+        bool is_float_div = is_float(tac->op1)  || is_float(tac->op2);
+        if(is_float_div) {
+            generate_TAC_DIV_FLOAT(fout, tac);
+        } else {
+            generate_TAC_DIV_INT(fout, tac);
+        }
+}
+
+
+void generate_TAC_DIV_INT(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "## TAC_DIV_INT\n"
+            "\tmovl\t_%s(%%rip), %%eax\n"
+            "\tcltd\n"
+            "\tidivl\t_%s(%%rip)\n"
+            "\tmovl\t%%eax, _%s(%%rip)\n",
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
+void generate_TAC_DIV_FLOAT(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "## TAC_DIV_FLOAT\n"
+            "\tmovss\t_%s(%%rip), %%xmm0\n"
+            "\tdivss\t_%s(%%rip), %%xmm0\n"
+            "\tmovss\t%%xmm0, _%s(%%rip)\n",
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
 
 char* generateDATA_SECTION() {
     int i = 0;
@@ -100,11 +243,13 @@ char* generateDATA_SECTION() {
         node = hash_table[i];
         if(node == NULL) continue;
 
+        char buffer[256];
+
         do {
             bool is_temp = node->type == SYMBOL_VARIABLE && node->datatype == 0;
-            if(is_temp) {
+            if(is_temp || is_lit(node->type)) {
 			    char *addition = (char *)malloc(+1 +2*strlen(hash_table[i]->text) +10);
-                sprintf(addition, "_%s:\t.long\t0\n", node->text);  // TODO: trocar o zero pelo símbolo de i
+                sprintf(addition, "_%s:\t.long\t%s\n", node->text, is_lit(node->type) ? get_as_assembly_data(node->text, node->type, buffer) : "0");
                 data_section = concat_string(data_section, addition);
             }
             node = node->next;
@@ -135,6 +280,10 @@ void generateAsm(TAC* first) {
             case TAC_FEND: generate_TAC_FEND(fout); break;
             case TAC_PRINT: generate_TAC_PRINT(fout, tac); break;
             case TAC_ARR: data_section = generate_TAC_ARR(data_section, tac); break;
+            case TAC_ADD: generate_TAC_ADD(fout, tac); break;
+            case TAC_SUB: generate_TAC_SUB(fout, tac); break;
+            case TAC_MULT: generate_TAC_MULT(fout, tac); break;
+            case TAC_DIV: generate_TAC_DIV(fout, tac); break;
         }
     }
 

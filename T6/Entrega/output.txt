@@ -1,4 +1,8 @@
-f = float: A.1;
+f = int: 10;
 main ( ) = int {
 
+print 5 + 2 
+print 5 - 2 
+print 5 * 2 
+print 5.0 / 2 
 };

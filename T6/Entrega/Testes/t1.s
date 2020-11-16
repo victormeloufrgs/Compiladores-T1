@@ -11,14 +11,22 @@ _main:                                  ## @main
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register %rbp
 	xorl	%eax, %eax
+	movss	_a(%rip), %xmm0         ## xmm0 = mem[0],zero,zero,zero
+	divss	_b(%rip), %xmm0
+	movss	%xmm0, _a(%rip)
 	popq	%rbp
 	retq
 	.cfi_endproc
                                         ## -- End function
 	.section	__DATA,__data
-	.globl	_f                      ## @f
+	.globl	_a                      ## @a
 	.p2align	2
-_f:
-	.long	1092681728              ## float 10.0625
+_a:
+	.long	1084227584              ## float 5
+
+	.globl	_b                      ## @b
+	.p2align	2
+_b:
+	.long	1073741824              ## float 2
 
 .subsections_via_symbols

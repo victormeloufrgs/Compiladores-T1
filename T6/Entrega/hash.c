@@ -90,7 +90,7 @@ int hash_check_undeclared() {
     return undeclared;
 }
 
-HASH_NODE* makeTemp(void) {
+HASH_NODE* makeTemp(int datatype) {
     static int serial = 0;
     char buffer[256] = "";
 
