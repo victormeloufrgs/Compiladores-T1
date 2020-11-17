@@ -2,6 +2,8 @@
 #include "val_converters.h"
 #include "assembler.h"
 
+unsigned int con_str_count = 0;
+
 char* get_as_assembly_data(char* data, int type, char* buffer);
 char* get_char_as_assembly_data(char* data, char* buffer);
 char* get_float_as_assembly_data(char* data, char* buffer);
@@ -16,7 +18,6 @@ void generate_TAC_DIV_INT(FILE* fout, TAC* tac);
 void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac);
 void generate_TAC_PRINT_STR(FILE* fout, TAC* tac);
 void generate_TAC_PRINT_INT(FILE* fout, TAC* tac);
-
 
 TAC* tacReverse(TAC* tac) {
     TAC* t = tac;
@@ -65,30 +66,23 @@ void generate_TAC_FEND(FILE* fout) {
 void generate_TAC_PRINT(FILE* fout, TAC* tac) {
 
     if(is_float(tac->res)) {
-        printf("\nentered generate_TAC_PRINT_FLOAT\n\n");
-
         generate_TAC_PRINT_FLOAT(fout, tac);
 
     } else if (is_string(tac->res)) {
-        printf("\nentered generate_TAC_PRINT_STR\n\n");
         generate_TAC_PRINT_STR(fout, tac);
 
     } else {
-        printf("entered generate_TAC_PRINT_INT\n");
         generate_TAC_PRINT_INT(fout, tac);
     }
-
-    
 }
 
 void generate_TAC_PRINT_STR(FILE* fout, TAC* tac) {
     fprintf(fout,
             "## TAC_PRINT_STRING\n"
-            "\tleaq	printstringstr(%%rip), %%rdi\n"
-            "\tmovl	_%s(%%rip), %%esi\n"
+            "\tleaq	_string_%d(%%rip), %%rdi\n"
             "\tmovb	$0, %%al\n"
             "\tcallq	_printf\n", 
-            tac->res ? tac->res->text : 0
+            tac->res ? hashFind(tac->res->text)->id : 0
     );
 }
 
@@ -186,8 +180,6 @@ void generate_TAC_MULT(FILE* fout, TAC* tac) {
 }
 
 bool is_float(HASH_NODE* hash_node) {
-    printf("\n\n%s\n", hash_node->text);
-    printf("is SYMBOL_LIT_FLOAT == %d | is DATATYPE_FLOAT == %d\n\n", hash_node->type == SYMBOL_LIT_FLOAT, hash_node->datatype == DATATYPE_FLOAT);
     return hash_node->type == SYMBOL_LIT_FLOAT || hash_node->datatype == DATATYPE_FLOAT;
 }
 
@@ -232,32 +224,44 @@ void generate_TAC_DIV_FLOAT(FILE* fout, TAC* tac) {
     );
 }
 
-
 char* generateDATA_SECTION() {
     int i = 0;
+    char *addition;
+    char buffer[256];
     HASH_NODE* node;
+
     char* data_section = malloc(sizeof(char) * 40);
     
     sprintf(data_section,"## DATA SECTION\n\t.section\t__DATA,__data\n\n");
 
     for(i=0; i < HASH_SIZE; i++) {
+
         node = hash_table[i];
         if(node == NULL) continue;
 
-        char buffer[256];
 
         do {
             bool is_temp = node->type == SYMBOL_VARIABLE && strstr(node->text,"1temp");
             if(is_temp || is_lit(node->type)) {
-			    char *addition = (char *)malloc(+1 +2*strlen(hash_table[i]->text) +10);
-                sprintf(addition, "_%s:\t.long\t%s\n", node->text, is_lit(node->type) ? get_as_assembly_data(node->text, node->type, buffer) : "0");
-                data_section = concat_string(data_section, addition);
+                
+                switch (node->type) {
+                    case SYMBOL_LIT_STRING:
+                        addition = realloc(addition, +strlen(node->text) + 30);
+                        sprintf(addition, "_string_%d: .asciz\t%s\n", node->id, node->text);
+                        break;
+                    default:
+                        addition = realloc(addition, +1 +2*strlen(hash_table[i]->text) +10);
+                        sprintf(addition, "_%s:\t.long\t%s\n", node->text, is_lit(node->type) ? get_as_assembly_data(node->text, node->type, buffer) : "0");
+                }
+
+                    data_section = concat_string(data_section, addition);
             }
+
             node = node->next;
         } while(node != NULL);
-
     }
 
+    free(addition);
     return data_section;
 }
 

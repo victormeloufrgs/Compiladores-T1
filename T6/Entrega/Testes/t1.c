@@ -3,7 +3,8 @@
 
 float a = 5.0;
 float b = 2.0;
+char* v = "Melo";
 
 int main() {
-    printf("%f\n", a/b);
+    printf("victor\n");
 }

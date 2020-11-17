@@ -11,11 +11,8 @@ _main:                                  ## @main
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register %rbp
 	subq	$16, %rsp
-	movss	_a(%rip), %xmm0         ## xmm0 = mem[0],zero,zero,zero
-	divss	_b(%rip), %xmm0
-	cvtss2sd	%xmm0, %xmm0
-	leaq	L_.str(%rip), %rdi
-	movb	$1, %al
+	leaq	L_.str.1(%rip), %rdi
+	movb	$0, %al
 	callq	_printf
 	xorl	%ecx, %ecx
 	movl	%eax, -4(%rbp)          ## 4-byte Spill
@@ -38,6 +35,16 @@ _b:
 
 	.section	__TEXT,__cstring,cstring_literals
 L_.str:                                 ## @.str
-	.asciz	"%f\n"
+	.asciz	"Melo"
+
+	.section	__DATA,__data
+	.globl	_v                      ## @v
+	.p2align	3
+_v:
+	.quad	L_.str
+
+	.section	__TEXT,__cstring,cstring_literals
+L_.str.1:                               ## @.str.1
+	.asciz	"victor"
 
 .subsections_via_symbols

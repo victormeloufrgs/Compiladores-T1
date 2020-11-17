@@ -8,6 +8,9 @@ Matrícula:  00285640
 #include <stdlib.h>
 #include "symbols.h"
 
+
+static int hash_id = 0;
+
 void hashInit(void) 
 {
     int i;
@@ -53,6 +56,8 @@ HASH_NODE *hashInsert(char *text, int type)
     newnode->text = (char*) calloc(strlen(text)+1, sizeof(char));
     strcpy(newnode->text, text);
     newnode->next = hash_table[address];
+    newnode->id = hash_id;
+    hash_id++;
     hash_table[address] = newnode;
     return newnode;
 }

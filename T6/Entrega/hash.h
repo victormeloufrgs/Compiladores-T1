@@ -22,6 +22,7 @@ typedef struct hash_node_struct
     struct hash_node_struct* next;
     struct astnode* func_decl_node;
     int is_global_scope_declaration;
+    int id;
 } HASH_NODE;
 
 HASH_NODE *hash_table[HASH_SIZE];
