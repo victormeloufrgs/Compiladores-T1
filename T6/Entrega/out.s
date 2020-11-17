@@ -10,14 +10,19 @@
 _main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-## TAC_OR
-	movl	_FALSE(%rip), %eax
-	movl	_TRUE(%rip), %edx
-	orl		 %edx, %eax
-	movl	%eax, _1temp_0(%rip)
+## TAC_NOT
+	movb	_f(%rip), %cl
+	xorb	$-1, %cl
+	andb	$1, %cl
+	movb	%cl, _1temp_0(%rip)
+## TAC_NOT
+	movb	_1temp_0(%rip), %cl
+	xorb	$-1, %cl
+	andb	$1, %cl
+	movb	%cl, _1temp_1(%rip)
 ## TAC_PRINT_INT
 	leaq	printintstr(%rip), %rdi
-	movl	_1temp_0(%rip), %esi
+	movl	_1temp_1(%rip), %esi
 	movb	$0, %al
 	callq	_printf
 ## TAC_FEND
@@ -28,8 +33,7 @@ _main:
 
 _0:	.long	0
 _1:	.long	1
-_10:	.long	16
-_TRUE:	.long	1
 _FALSE:	.long	0
 _1temp_0:	.long	0
-_f:	.long	16
+_1temp_1:	.long	0
+_f:	.long	0

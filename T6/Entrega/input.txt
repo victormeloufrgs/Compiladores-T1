@@ -1,5 +1,5 @@
-f = int : 10;
+f = bool : FALSE;
 
 main () = int {
-    print FALSE | TRUE
+    print ~~f
 };

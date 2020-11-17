@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-float a = 5.0;
-float b = 2.0;
-char* v = "Melo";
+bool b = true;
+bool c = true;
 
 int main() {
-    printf("victor\n");
+   c = !b;
 }

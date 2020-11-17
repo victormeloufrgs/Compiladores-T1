@@ -10,41 +10,25 @@ _main:                                  ## @main
 	.cfi_offset %rbp, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register %rbp
-	subq	$16, %rsp
-	leaq	L_.str.1(%rip), %rdi
-	movb	$0, %al
-	callq	_printf
-	xorl	%ecx, %ecx
-	movl	%eax, -4(%rbp)          ## 4-byte Spill
-	movl	%ecx, %eax
-	addq	$16, %rsp
+	xorl	%eax, %eax
+
+	movb	_b(%rip), %cl
+	xorb	$-1, %cl
+	andb	$1, %cl
+	movb	%cl, _c(%rip)
+
+
 	popq	%rbp
 	retq
 	.cfi_endproc
                                         ## -- End function
 	.section	__DATA,__data
-	.globl	_a                      ## @a
-	.p2align	2
-_a:
-	.long	1084227584              ## float 5
-
 	.globl	_b                      ## @b
-	.p2align	2
 _b:
-	.long	1073741824              ## float 2
+	.byte	1                       ## 0x1
 
-	.section	__TEXT,__cstring,cstring_literals
-L_.str:                                 ## @.str
-	.asciz	"Melo"
-
-	.section	__DATA,__data
-	.globl	_v                      ## @v
-	.p2align	3
-_v:
-	.quad	L_.str
-
-	.section	__TEXT,__cstring,cstring_literals
-L_.str.1:                               ## @.str.1
-	.asciz	"victor"
+	.globl	_c                      ## @c
+_c:
+	.byte	1                       ## 0x1
 
 .subsections_via_symbols

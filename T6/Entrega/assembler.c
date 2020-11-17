@@ -291,6 +291,18 @@ void generate_TAC_OR(FILE* fout, TAC* tac) {
     );
 }
 
+void generate_TAC_NOT(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "## TAC_NOT\n"
+            "\tmovb\t_%s(%%rip), %%cl\n"
+            "\txorb\t$-1, %%cl\n"
+            "\tandb\t$1, %%cl\n"
+        	"\tmovb\t%%cl, _%s(%%rip)\n",
+            tac->op1->text,
+            tac->res->text
+    );
+}
+
 
 void generateAsm(TAC* first) {
     TAC* tac;
@@ -318,6 +330,8 @@ void generateAsm(TAC* first) {
             case TAC_DIV: generate_TAC_DIV(fout, tac); break;
             case TAC_AND: generate_TAC_AND(fout, tac); break;
             case TAC_OR: generate_TAC_OR(fout, tac); break;
+            case TAC_NOT: generate_TAC_NOT(fout, tac); break;
+		    default: fprintf(stderr, "Assembler error: unknown intermediary code.\n"); break;
         }
     }
 
