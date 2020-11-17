@@ -265,6 +265,33 @@ char* generateDATA_SECTION() {
     return data_section;
 }
 
+void generate_TAC_AND(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "## TAC_AND\n"
+            "\tmovl\t_%s(%%rip), %%eax\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tandl\t%%edx, %%eax\n"
+            "\tmovl\t%%eax, _%s(%%rip)\n", 
+            tac->op1->text,
+            tac->op2->text, 
+            tac->res->text
+    );
+}
+
+void generate_TAC_OR(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "## TAC_OR\n"
+            "\tmovl\t_%s(%%rip), %%eax\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\torl\t\t %%edx, %%eax\n"
+            "\tmovl\t%%eax, _%s(%%rip)\n", 
+            tac->op1->text,
+            tac->op2->text, 
+            tac->res->text
+    );
+}
+
+
 void generateAsm(TAC* first) {
     TAC* tac;
     FILE* fout;
@@ -289,6 +316,8 @@ void generateAsm(TAC* first) {
             case TAC_SUB: generate_TAC_SUB(fout, tac); break;
             case TAC_MULT: generate_TAC_MULT(fout, tac); break;
             case TAC_DIV: generate_TAC_DIV(fout, tac); break;
+            case TAC_AND: generate_TAC_AND(fout, tac); break;
+            case TAC_OR: generate_TAC_OR(fout, tac); break;
         }
     }
 

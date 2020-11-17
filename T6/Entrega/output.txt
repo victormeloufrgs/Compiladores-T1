@@ -1,5 +1,5 @@
 f = int: 10;
 main ( ) = int {
 
-print "Victor\n" 
+print FALSE | TRUE 
 };
