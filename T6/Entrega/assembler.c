@@ -171,11 +171,11 @@ char* assembly_formatter_for_datatype(int datatype) {
 #define NUM_PARAM_REGS 6
 
 
+unsigned int lit_str_count = 0;
 char* generate_TAC_PRINT(FILE* fout, TAC *print, char **data_section) {
 
     const char *param_regs_64[] = { "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9" };
     const char *param_regs_32[] = { "%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d" };
-    unsigned int lit_str_count = 0;
 
     char *assembly = malloc(sizeof(""));
     assembly[0] = '\0';
