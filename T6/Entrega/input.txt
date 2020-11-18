@@ -1,12 +1,7 @@
-f = bool : FALSE;
-
 main () = int {
-    if (TRUE == TRUE) then {
-        print "IGUAL\n"
-    } else {
-        print "Diferente\n"
-    }
+    print 1.2 + 1.2
+};
 
-    print "Concluiu\n"
-    print 5.2 + 3.2
+mfunction () = float {
+    return 5.2
 };

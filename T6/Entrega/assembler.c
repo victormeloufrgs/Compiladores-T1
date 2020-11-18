@@ -15,9 +15,11 @@ bool is_string(HASH_NODE* hash_node);
 void generate_TAC_DIV_FLOAT(FILE* fout, TAC* tac);
 void generate_TAC_DIV_INT(FILE* fout, TAC* tac);
 
-void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac);
-void generate_TAC_PRINT_STR(FILE* fout, TAC* tac);
-void generate_TAC_PRINT_INT(FILE* fout, TAC* tac);
+// void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac);
+// void generate_TAC_PRINT_STR(FILE* fout, TAC* tac);
+// void generate_TAC_PRINT_INT(FILE* fout, TAC* tac);
+
+bool is_lit(int type);
 
 TAC* tacReverse(TAC* tac) {
     TAC* t = tac;
@@ -26,6 +28,77 @@ TAC* tacReverse(TAC* tac) {
         t->prev->next = t;
 
     return t;
+}
+
+
+char* ass_mov_for_tac(TAC* tac, char* fst, char* snd) {
+    if (is_float(tac->res)) {
+        return concat_string("\tmovss\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    } else {
+        return concat_string("\tmovl\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    }
+}
+
+char* ass_add_for_tac(TAC* tac, char* fst, char* snd) {
+    if (is_float(tac->res)) {
+        return concat_string("\taddss\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    } else {
+        return concat_string("\taddl\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    }
+}
+
+
+char* ass_xmm0_or_eax_for_tac(TAC* tac) {
+    if (is_float(tac->res)) {
+        return "%xmm0";
+    } else {
+        return "%eax";
+    }
+}
+
+char* ass_key_for(char* text) {
+    return concat_string(concat_string("_", text), "(%rip)");
+}
+
+char* get_movl_val_or_eax(TAC* arg) {
+    if(arg->res) {
+        return is_lit(arg->res->type) ? concat_string(concat_string("_",arg->res->text),"(%rip)") : "%eax";
+    } else { // is function
+        return "_0";
+    }
+}
+
+char* get_movss_val_or_xmm0(TAC* arg) {
+    if(arg->res) {
+        return is_lit(arg->res->type) ? concat_string(concat_string("_",arg->res->text),"(%rip)") : "%xmm0";
+    } else { // is function
+        return "_0";
+    }
+}
+
+TAC* assembler_fill_parameters(TAC *arg) {
+
+	int i = 0;
+	TAC *func_call = arg;
+
+	while(func_call->type != TAC_FCALL) {
+		func_call = func_call->prev;
+		if(func_call->type == TAC_ARG) i++;
+	}
+
+	TAC *func_dec;
+	for(func_dec = arg; func_dec && !(func_dec->type == TAC_FBEGIN && strcmp(func_call->op1->text, func_dec->res->text) == 0); func_dec = func_dec->next);
+	
+	if(!func_dec)
+		for(func_dec = arg; func_dec && !(func_dec->type == TAC_FBEGIN && strcmp(func_call->op1->text, func_dec->res->text) == 0); func_dec = func_dec->prev);
+
+	TAC *param = func_dec;
+	int j;
+	for(j = 0; j<=i; j++) {
+		param = param->prev;
+	}
+
+	return param;
 }
 
 bool is_lit(int type) {
@@ -39,77 +112,224 @@ void generateFixedInit(FILE* fout) {
                     "\tprintfloatstr: .asciz	\"%%f\\n\"\n"
                     "\tprintstringstr: .asciz	\"%%s\\n\"\n"
                     "\n"
-                    "\t.section	__TEXT,__text,regular,pure_instructions\n"
+                    "\t.section	__TEXT,__text,regular,pure_instructions\n.globl _main\n"
     );
 }
 
 void generate_TAC_FBEGIN(FILE* fout, TAC* tac) {
     fprintf(fout, 
-            "## TAC_FBEGIN\n"
-            "\t.globl	_%s\n"                 
-            "_%s:\n"                                  
-            "\tpushq	%%rbp\n"
+            "# TAC_FBEGIN\n"              
+            "_%s:\n"             
+            "\t.cfi_startproc\n"                     
+            "\tpushq %%rbp\n"
             "\tmovq	%%rsp, %%rbp\n", 
-            tac->res ? tac->res->text : 0, 
             tac->res ? tac->res->text : 0
     ); 
 }
 
 void generate_TAC_FEND(FILE* fout) {
     fprintf(fout, 
-            "## TAC_FEND\n"
-            "\tpopq	%%rbp\n"
+            "# TAC_FEND\n"
+            "\tpopq\t%%rbp\n"
             "\tretq\n"
+            "\t.cfi_endproc\n"
     );
 }
 
-void generate_TAC_PRINT(FILE* fout, TAC* tac) {
-
-    if(is_float(tac->res)) {
-        generate_TAC_PRINT_FLOAT(fout, tac);
-
-    } else if (is_string(tac->res)) {
-        generate_TAC_PRINT_STR(fout, tac);
-
-    } else {
-        generate_TAC_PRINT_INT(fout, tac);
+char* assembly_formatter_for_datatype(int datatype) {
+    switch (datatype) {
+        case DATATYPE_BOOL: return "printintstr";
+        case DATATYPE_CHAR: return "printintstr";
+        case DATATYPE_FLOAT: return "printfloatstr";
+        case DATATYPE_STRING: return "printstringstr";
+        case DATATYPE_INT: return "printintstr";
+        default: return "printintstr";
     }
 }
 
-void generate_TAC_PRINT_STR(FILE* fout, TAC* tac) {
-    fprintf(fout,
-            "## TAC_PRINT_STRING\n"
-            "\tleaq	_string_%d(%%rip), %%rdi\n"
-            "\tmovb	$0, %%al\n"
-            "\tcallq	_printf\n", 
-            tac->res ? hashFind(tac->res->text)->id : 0
-    );
+#define NUM_PARAM_REGS 6
+
+const char *param_regs_64[] = { "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9" };
+const char *param_regs_32[] = { "%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d" };
+unsigned int lit_str_count = 0;
+
+void generate_TAC_PRINT(FILE* fout, TAC *print, char **data_section) {
+
+    char *assembly = malloc(sizeof(""));
+    assembly[0] = '\0';
+
+    char lit_srt_sec_dec[30];
+	sprintf(lit_srt_sec_dec, "L_.str.%d: .asciz\t\"", lit_str_count);
+	char *lit_srt_sec_dec_p = &lit_srt_sec_dec[0];
+	char s[] = "%s";
+	char d[] = "%d";
+
+    char *addition = NULL;
+	int regc = 1;
+	TAC *arg;
+
+	for(arg = print->next; arg->type == TAC_ARG && regc < NUM_PARAM_REGS; arg = arg->next) {
+		HASH_NODE* symbol = arg->res;
+		switch(symbol->type) {
+			case SYMBOL_LIT_STRING:
+				addition = realloc(addition, +strlen(symbol->text) +30);
+				sprintf(addition, "_string_%d: .asciz\t%s\n", con_str_count, symbol->text);
+				*data_section = concat_string(*data_section, addition);
+				
+				addition = realloc(addition, +strlen(param_regs_64[regc]) +34);
+				sprintf(addition, "\tleaq\t_string_%d(%%rip), %s\n", hashFind(symbol->text)->id, param_regs_64[regc]);
+				assembly = concat_string(assembly, addition);
+
+				lit_srt_sec_dec_p = concat_string(lit_srt_sec_dec_p, s);
+				
+				con_str_count++;
+				break;
+			default:
+				addition = realloc(addition, +17 +strlen(symbol->text) +strlen(param_regs_32[regc]));
+				sprintf(addition, "\tmovl\t_%s(%%rip), %s\n", symbol->text, param_regs_32[regc]);
+				assembly = concat_string(assembly, addition);
+				lit_srt_sec_dec_p = concat_string(lit_srt_sec_dec_p, d);
+		}
+		regc++;
+	}
+
+	addition = realloc(addition, 256);
+
+    if(print->res->type == SYMBOL_LIT_FLOAT) {
+        sprintf(addition,
+                "# TAC_PRINT_LIT_FLOAT\n"
+                "\tleaq	printfloatstr(%%rip), %%rdi\n"
+                "\tmovss\t%s, %%xmm0\n"
+	            "\tcvtss2sd\t%%xmm0, %%xmm0\n"
+                "\tmovb	$1, %%al\n"
+                "\tcallq	_printf\n",
+                get_movl_val_or_eax(print)
+        );
+
+    } else if (print->res->type == SYMBOL_LIT_STRING) {
+        sprintf(addition,
+                "# TAC_PRINT_LIT_STRING\n"
+                "\tleaq	_string_%d(%%rip), %%rdi\n"
+                "\tmovb	$0, %%al\n"
+                "\tcallq	_printf\n", 
+                print->res ? hashFind(print->res->text)->id : 0
+        );
+
+
+    } else if (print->res->type == SYMBOL_LIT_INTEGER) {
+        sprintf(addition,
+                "# TAC_PRINT_LIT_INT\n"
+                "\tleaq	printintstr(%%rip), %%rdi\n"
+                "\tmovl	_%s(%%rip), %%esi\n"
+                "\tmovb	$0, %%al\n"
+                "\tcallq	_printf\n",
+                print->res->text
+        );
+    } else if (print->res->type == SYMBOL_LIT_TRUE || print->res->type == SYMBOL_LIT_FALSE) {
+        sprintf(addition,
+                "# TAC_PRINT_LIT_BOOL\n"
+                "\tleaq	printintstr(%%rip), %%rdi\n"
+                "\tmovl	_%s(%%rip), %%esi\n"
+                "\tmovb	$0, %%al\n"
+                "\tcallq	_printf\n",
+                print->res->text
+        );
+    } else if (print->res->datatype == DATATYPE_INT) { // Um não literal que retorna int.
+        sprintf(addition,
+                "# TAC_PRINT_NOT_LIT_INT\n"
+                "\tleaq	printintstr(%%rip), %%rdi\n"
+                "\tmovl	%%eax, %%esi\n"
+                "\tmovb	$0, %%al\n"
+                "\tcallq	_printf\n"
+        );
+    } else if (print->res->datatype == DATATYPE_BOOL) { // Um não literal que retorna bool.
+        sprintf(addition,
+                "# TAC_PRINT_NOT_LIT_BOOL\n"
+                "\tleaq	printintstr(%%rip), %%rdi\n"
+                "\tmovl	%%eax, %%esi\n"
+                "\tmovb	$0, %%al\n"
+                "\tcallq	_printf\n"
+        );
+    } else if (print->res->datatype == DATATYPE_FLOAT) { // Um não literal que retorna float.
+        sprintf(addition,
+                "# TAC_PRINT_NOT_LIT_FLOAT\n"
+                "\tleaq	printfloatstr(%%rip), %%rdi\n"
+                "\tcvtss2sd	%%xmm0, %%xmm0\n"
+                "\tmovb	$1, %%al\n"
+                "\tcallq	_printf\n"
+        );
+    }
+
+	assembly = concat_string(assembly, addition);
+
+	lit_srt_sec_dec_p = concat_string(lit_srt_sec_dec_p, "\\n\"\n");
+	*data_section = concat_string(*data_section, lit_srt_sec_dec_p);
+
+	lit_str_count++;
+	free(addition);
+
+    fprintf(fout, "%s", assembly);
+
+
+    // if(is_float(tac->res)) {
+    //     generate_TAC_PRINT_FLOAT(fout, tac);
+
+    // } else if (is_string(tac->res)) {
+    //     generate_TAC_PRINT_STR(fout, tac);
+
+    // } else {
+    //     generate_TAC_PRINT_INT(fout, tac);
+    // }
 }
 
-void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac) {
-    fprintf(fout,
-            "## TAC_PRINT_FLOAT\n"
-            "\tleaq	printfloatstr(%%rip), %%rdi\n"
-            "\tmovl	_%s(%%rip), %%esi\n"
-            "\tmovb	$1, %%al\n"
-            "\tcallq	_printf\n", 
-            tac->res ? tac->res->text : 0
-    );
-}
+// void generate_TAC_PRINT_STR(FILE* fout, TAC* tac) {
+//     fprintf(fout,
+//             "# TAC_PRINT_STRING\n"
+//             "\tleaq	_string_%d(%%rip), %%rdi\n"
+//             "\tmovb	$0, %%al\n"
+//             "\tcallq	_printf\n", 
+//             tac->res ? hashFind(tac->res->text)->id : 0
+//     );
+// }
 
-void generate_TAC_PRINT_INT(FILE* fout, TAC* tac) {
-    fprintf(fout,
-            "## TAC_PRINT_INT\n"
-            "\tleaq	printintstr(%%rip), %%rdi\n"
-            "\tmovl	_%s(%%rip), %%esi\n"
-            "\tmovb	$0, %%al\n"
-            "\tcallq	_printf\n", 
-            tac->res ? tac->res->text : 0
-    );
-}
+// void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac) {
+//     fprintf(fout,
+//             "# TAC_PRINT_FLOAT\n"
+//             "\tleaq	printfloatstr(%%rip), %%rdi\n"
+//             "\tmovl	_%s(%%rip), %%esi\n"
+//             "\tmovb	$1, %%al\n"
+//             "\tcallq	_printf\n", 
+//             tac->res ? tac->res->text : 0
+//     );
+// }
+
+// void generate_TAC_PRINT_INT(FILE* fout, TAC* tac) {
+//     fprintf(fout,
+//             "# TAC_PRINT_INT\n"
+//             "\tleaq	printintstr(%%rip), %%rdi\n"
+//             "\tmovl	_%s(%%rip), %%esi\n"
+//             "\tmovb	$0, %%al\n"
+//             "\tcallq	_printf\n", 
+//             tac->res ? tac->res->text : 0
+//     );
+// }
 
 
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
+    char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
+
+    if (tac->res) {
+        char buffer[512] = "";
+        char* val = get_as_assembly_data(tac->op1 ? tac->op1->text : 0, tac->op1->type, buffer);
+        sprintf(addition, "_%s:\t.long\t%s\n", tac->res->text, val);
+    }
+    data_section = concat_string(data_section, addition);
+    free(addition);
+
+    return data_section;
+}
+
+char* generate_TAC_PARAM(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
 
     if (tac->res) {
@@ -143,20 +363,30 @@ char* generate_TAC_ARR(char* data_section, TAC* tac) {
 }
 
 void generate_TAC_ADD(FILE* fout, TAC* tac) { 
+        // fprintf(fout, 
+        //         "# TAC_ADD\n"
+        //         "\tmovl\t_%s(%%rip), %%eax\n"
+        //         "\taddl\t_%s(%%rip), %%eax\n"
+        //         "\tmovl\t%%eax, _%s(%%rip)\n",
+        //         tac->op1->text, 
+        //         tac->op2->text,
+        //         tac->res->text
+        // );
+
         fprintf(fout, 
-                "## TAC_ADD\n"
-                "\tmovl\t_%s(%%rip), %%eax\n"
-                "\taddl\t_%s(%%rip), %%eax\n"
-                "\tmovl\t%%eax, _%s(%%rip)\n",
-                tac->op1->text, 
-                tac->op2->text,
-                tac->res->text
+                "# TAC_ADD\n"
+                "%s"
+                "%s"
+                "%s",
+                ass_mov_for_tac(tac, ass_key_for(tac->op1->text), ass_xmm0_or_eax_for_tac(tac)),
+                ass_add_for_tac(tac, ass_key_for(tac->op2->text), ass_xmm0_or_eax_for_tac(tac)),
+                ass_mov_for_tac(tac, ass_xmm0_or_eax_for_tac(tac), ass_key_for(tac->res->text))
         );
 }
 
 void generate_TAC_SUB(FILE* fout, TAC* tac) { 
         fprintf(fout, 
-                "## TAC_SUB\n"
+                "# TAC_SUB\n"
                 "\tmovl\t_%s(%%rip), %%eax\n"
                 "\tsubl\t_%s(%%rip), %%eax\n"
                 "\tmovl\t%%eax, _%s(%%rip)\n",
@@ -169,7 +399,7 @@ void generate_TAC_SUB(FILE* fout, TAC* tac) {
 
 void generate_TAC_MULT(FILE* fout, TAC* tac) { 
         fprintf(fout, 
-                "## TAC_MUL\n"
+                "# TAC_MUL\n"
                 "\tmovl\t_%s(%%rip), %%eax\n"
                 "\timull\t_%s(%%rip), %%eax\n"
                 "\tmovl\t%%eax, _%s(%%rip)\n",
@@ -200,7 +430,7 @@ void generate_TAC_DIV(FILE* fout, TAC* tac) {
 
 void generate_TAC_DIV_INT(FILE* fout, TAC* tac) {
     fprintf(fout, 
-            "## TAC_DIV_INT\n"
+            "# TAC_DIV_INT\n"
             "\tmovl\t_%s(%%rip), %%eax\n"
             "\tcltd\n"
             "\tidivl\t_%s(%%rip)\n"
@@ -213,7 +443,7 @@ void generate_TAC_DIV_INT(FILE* fout, TAC* tac) {
 
 void generate_TAC_DIV_FLOAT(FILE* fout, TAC* tac) {
     fprintf(fout, 
-            "## TAC_DIV_FLOAT\n"
+            "# TAC_DIV_FLOAT\n"
             "\tmovss\t_%s(%%rip), %%xmm0\n"
             "\tdivss\t_%s(%%rip), %%xmm0\n"
             "\tcvtss2sd %%xmm0, %%xmm0\n"
@@ -232,7 +462,7 @@ char* generateDATA_SECTION() {
 
     char* data_section = malloc(sizeof(char) * 40);
     
-    sprintf(data_section,"## DATA SECTION\n\t.section\t__DATA,__data\n\n");
+    sprintf(data_section,"# DATA SECTION\n\t.section\t__DATA,__data\n\n");
 
     for(i=0; i < HASH_SIZE; i++) {
 
@@ -267,7 +497,7 @@ char* generateDATA_SECTION() {
 
 void generate_TAC_AND(FILE* fout, TAC* tac) {
     fprintf(fout, 
-            "## TAC_AND\n"
+            "# TAC_AND\n"
             "\tmovl\t_%s(%%rip), %%eax\n"
             "\tmovl\t_%s(%%rip), %%edx\n"
             "\tandl\t%%edx, %%eax\n"
@@ -280,7 +510,7 @@ void generate_TAC_AND(FILE* fout, TAC* tac) {
 
 void generate_TAC_OR(FILE* fout, TAC* tac) {
     fprintf(fout, 
-            "## TAC_OR\n"
+            "# TAC_OR\n"
             "\tmovl\t_%s(%%rip), %%eax\n"
             "\tmovl\t_%s(%%rip), %%edx\n"
             "\torl\t\t %%edx, %%eax\n"
@@ -293,7 +523,7 @@ void generate_TAC_OR(FILE* fout, TAC* tac) {
 
 void generate_TAC_NOT(FILE* fout, TAC* tac) {
     fprintf(fout, 
-            "## TAC_NOT\n"
+            "# TAC_NOT\n"
             "\tmovb\t_%s(%%rip), %%cl\n"
             "\txorb\t$-1, %%cl\n"
             "\tandb\t$1, %%cl\n"
@@ -305,7 +535,7 @@ void generate_TAC_NOT(FILE* fout, TAC* tac) {
 
 void generate_TAC_EQ(FILE* fout, TAC* tac) {
     fprintf(fout,
-            "\t## TAC_EQ\n"
+            "# TAC_EQ\n"
             "\tmovl\t_%s(%%rip), %%edx\n"
             "\tcmpl\t_%s(%%rip), %%edx\n"
             "\tje\t\t_%s\n", 
@@ -315,6 +545,172 @@ void generate_TAC_EQ(FILE* fout, TAC* tac) {
     );
 }
 
+void generate_TAC_JUMP(FILE* fout, TAC* tac) {
+    fprintf(fout,
+            "# TAC_JUMP\n"
+            "\tjmp\t\t_%s\n",
+            tac->res->text
+    ); 
+}
+
+void generate_TAC_LABEL(FILE* fout, TAC* tac) {
+    fprintf(fout, 	
+            "# TAC_LABEL\n"
+            "_%s:\n", 
+            tac->res->text
+    );
+}
+
+void generate_TAC_MOVE(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_MOVE\n"
+            "\tmovl\t_%s(%%rip), %%eax\n"
+            "\tmovl\t%%eax, _%s(%%rip)\n",
+            tac->op1->text, 
+            tac->res->text
+    );
+}
+
+void generate_TAC_JEQ(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_JEQ\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tje\t\t_%s\n", tac->op1->text, tac->op2->text,
+            tac->res->text);
+}
+
+void generate_TAC_JFALSE(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_JFALSE\n"
+            "\tcmpl\t$0, _%s(%%rip)\n"
+            "\tje\t\t_%s\n", 
+            tac->op1->text, 
+            tac->res->text
+    );
+}
+
+void generate_TAC_LE(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_LE\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tjle\t\t_%s\n", 
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
+void generate_TAC_LT(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_LT\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tjl\t\t_%s\n", 
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
+void generate_TAC_GE(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_GE\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tjge\t\t_%s\n", 
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
+void generate_TAC_GT(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_GT\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tjg\t\t_%s\n", 
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
+void generate_TAC_DIF(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_DIF\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tjne\t\t_%s\n", 
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
+void generate_TAC_ACALL(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_ACALL\n"
+            "\tleaq\t_%s(%%rip), %%rcx\n"
+            "\tmovslq\t_%s(%%rip), %%rdx\n"
+            "\tmovl\t(%%rcx,%%rdx,4), %%esi\n"
+            "\tmovl\t%%esi, _%s(%%rip)\n", 
+            tac->op1->text,
+            tac->op2->text, 
+            tac->res->text
+    ); 
+}
+
+void generate_TAC_FCALL(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_FCALL\n"
+            "\tcallq\t_%s\n", 
+            tac->op1->text
+    );
+}
+
+void generate_TAC_ARG(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_ARG\n"
+            "\tmovl\t_%s(%%rip), %%eax\n"
+            "\tmovl\t%%eax, _%s(%%rip)\n", 
+            tac->res->text,
+            assembler_fill_parameters(tac)->res->text
+    );
+}
+
+void generate_TAC_AATTR(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_AATTR\n"
+            "\tleaq\t_%s(%%rip), %%rcx\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tmovslq\t_%s(%%rip), %%rsi\n"
+            "\tmovl\t%%edx, (%%rcx,%%rsi,4)\n", 
+            tac->res->text,
+            tac->op2->text, tac->op1->text
+    );
+}
+
+void generate_TAC_RET(FILE* fout, TAC* tac) {
+    
+    fprintf(fout,	
+            "# TAC_RET\n"
+            "%s",
+            ass_mov_for_tac(tac, ass_key_for(tac->res->text), ass_xmm0_or_eax_for_tac(tac))
+    );
+}
+
+void generate_TAC_READ(FILE* fout, TAC* tac) {
+    fprintf(fout,	
+            "# TAC_READ\n"
+            "\tleaq\tL_.str.read(%%rip), %%rdi\n"
+            "\tleaq\t_%s(%%rip), %%rsi\n"
+            "\tcallq\t_scanf\n", 
+            tac->res->text
+    );
+}
 
 void generateAsm(TAC* first) {
     TAC* tac;
@@ -330,52 +726,40 @@ void generateAsm(TAC* first) {
     // Each Tac
     for (tac = first; tac; tac = tac->next) {
         switch(tac->type) {
-			case TAC_SYMBOL: break;
-			case TAC_VAR: data_section = generate_TAC_VAR(data_section, tac); break;
-            case TAC_FBEGIN: generate_TAC_FBEGIN(fout, tac); break;
-            case TAC_FEND: generate_TAC_FEND(fout); break;
-            case TAC_PRINT: generate_TAC_PRINT(fout, tac); break;
-            case TAC_ARR: data_section = generate_TAC_ARR(data_section, tac); break;
-            case TAC_ADD: generate_TAC_ADD(fout, tac); break;
-            case TAC_SUB: generate_TAC_SUB(fout, tac); break;
-            case TAC_MULT: generate_TAC_MULT(fout, tac); break;
-            case TAC_DIV: generate_TAC_DIV(fout, tac); break;
-            case TAC_AND: generate_TAC_AND(fout, tac); break;
-            case TAC_OR: generate_TAC_OR(fout, tac); break;
-            case TAC_NOT: generate_TAC_NOT(fout, tac); break;
-            case TAC_EQ: generate_TAC_EQ(fout, tac); break;
-            case TAC_JUMP:  
-                    fprintf(fout,
-                            "\t## TAC_JUMP\n"
-                            "\tjmp\t\t_%s\n",
-                            tac->res->text
-                    ); 
-                    break;
-            case TAC_LABEL:
-                fprintf(fout, 	
-                        "\t## TAC_LABEL\n"
-                        "_%s:\n", 
-                        tac->res->text
-                );
-                break;
-            
-            case TAC_MOVE:
-                fprintf(fout,	
-                        "\t# TAC_MOVE\n"
-                                "\tmovl\t_%s(%%rip), %%eax\n"
-                                "\tmovl\t%%eax, _%s(%%rip)\n",
-                                tac->op1->text, tac->res->text); break;
-                break;
+			case TAC_SYMBOL     : break;
+			case TAC_VAR        : data_section = generate_TAC_VAR(data_section, tac); break;
+            case TAC_PARAM      : data_section = generate_TAC_PARAM(data_section, tac); break;
+            case TAC_ARR        : data_section = generate_TAC_ARR(data_section, tac); break;
+            case TAC_FBEGIN     : generate_TAC_FBEGIN(fout, tac); break;
+            case TAC_FEND       : generate_TAC_FEND(fout); break;
+            case TAC_PRINT      : generate_TAC_PRINT(fout, tac, &data_section); break;
+            case TAC_ADD        : generate_TAC_ADD(fout, tac); break;
+            case TAC_SUB        : generate_TAC_SUB(fout, tac); break;
+            case TAC_MULT       : generate_TAC_MULT(fout, tac); break;
+            case TAC_DIV        : generate_TAC_DIV(fout, tac); break;
+            case TAC_AND        : generate_TAC_AND(fout, tac); break;
+            case TAC_OR         : generate_TAC_OR(fout, tac); break;
+            case TAC_NOT        : generate_TAC_NOT(fout, tac); break;
+            case TAC_EQ         : generate_TAC_EQ(fout, tac); break;
+            case TAC_JUMP       : generate_TAC_JUMP(fout, tac); break;
+            case TAC_LABEL      : generate_TAC_LABEL(fout, tac); break;
+            case TAC_MOVE       : generate_TAC_MOVE(fout, tac); break;
+            case TAC_JFALSE     : generate_TAC_JFALSE(fout, tac); break;
+            case TAC_JEQ        : generate_TAC_JEQ(fout, tac); break;
 
-            case TAC_JFALSE:
-                fprintf(fout,	
-                        "\t# TAC_JFALSE\n"
-                        "\tcmpl\t$0, _%s(%%rip)\n"
-                        "\tje\t\t_%s\n", 
-                        tac->op1->text, 
-                        tac->res->text
-                );
-                break;
+            case TAC_LE         : generate_TAC_LE(fout, tac); break; 
+            case TAC_LT         : generate_TAC_LT(fout, tac); break; 
+            case TAC_GE         : generate_TAC_GE(fout, tac); break; 
+            case TAC_GT         : generate_TAC_GT(fout, tac); break; 
+            case TAC_DIF        : generate_TAC_DIF(fout, tac); break;
+
+            case TAC_ACALL      : generate_TAC_ACALL(fout, tac); break;
+            case TAC_FCALL      : generate_TAC_FCALL(fout, tac); break;
+            case TAC_ARG        : generate_TAC_ARG(fout, tac); break;
+
+            case TAC_AATTR      : generate_TAC_AATTR(fout, tac); break;
+            case TAC_RET        : generate_TAC_RET(fout, tac); break;
+            case TAC_READ       : generate_TAC_READ(fout, tac); break;
 
 		    default: fprintf(stderr, "Assembler error: unknown intermediary code.\n"); break;
         }
