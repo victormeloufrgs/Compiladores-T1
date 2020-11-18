@@ -20,6 +20,14 @@ char *concat_string(char* string, char* addition) {
 	return newStr;
 }
 
+char *remover_aspas_do_char(char* char_com_aspas) {
+	char* newStr = malloc(strlen(char_com_aspas));
+    newStr = strcpy(newStr, char_com_aspas);
+    newStr++;
+    newStr[strlen(newStr)-1] = 0;
+    return newStr;
+}
+
 // To return value of a char. For example, 2 is 
 // returned for '2'.  10 is returned for 'A', 11 
 // for 'B' 

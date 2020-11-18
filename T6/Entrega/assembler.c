@@ -2,8 +2,6 @@
 #include "val_converters.h"
 #include "assembler.h"
 
-unsigned int con_str_count = 0;
-
 char* get_as_assembly_data(char* data, int type, int datatype, char* buffer);
 char* get_char_as_assembly_data(char* data, char* buffer);
 char* get_float_as_assembly_data(char* data, char* buffer);
@@ -195,9 +193,6 @@ char* generate_TAC_PRINT(FILE* fout, TAC *print, char **data_section) {
 		HASH_NODE* symbol = arg->res;
 		switch(symbol->type) {
 			case SYMBOL_LIT_STRING:
-				addition = realloc(addition, +strlen(symbol->text) +30);
-				sprintf(addition, "_string_%d: .asciz\t%s\n", con_str_count, symbol->text);
-				*data_section = concat_string(*data_section, addition);
 				
 				addition = realloc(addition, +strlen(param_regs_64[regc]) +34);
 				sprintf(addition, "\tleaq\t_string_%d(%%rip), %s\n", hashFind(symbol->text)->id, param_regs_64[regc]);
@@ -205,7 +200,6 @@ char* generate_TAC_PRINT(FILE* fout, TAC *print, char **data_section) {
 
 				lit_srt_sec_dec_p = concat_string(lit_srt_sec_dec_p, s);
 				
-				con_str_count++;
 				break;
 
 			default:
@@ -278,7 +272,7 @@ char* generate_TAC_ARR(char* data_section, TAC* tac) {
         elem = elem->next;
     }
 
-    return str;
+    return concat_string(data_section, str);
 }
 
 void generate_TAC_ADD(FILE* fout, TAC* tac) {
@@ -369,7 +363,7 @@ char* generateDATA_SECTION() {
     char buffer[256];
     HASH_NODE* node;
 
-    char* data_section = malloc(sizeof(char) * 2048);
+    char* data_section = malloc(sizeof(char) * 5048);
     
     sprintf(data_section,"# DATA SECTION\n\t.section\t__DATA,__data\n\n");
 
@@ -387,6 +381,9 @@ char* generateDATA_SECTION() {
                     case SYMBOL_LIT_STRING:
                         addition = realloc(addition, +strlen(node->text) + 30);
                         sprintf(addition, "_string_%d: .asciz\t%s\n", node->id, node->text);
+                        break;
+                    case SYMBOL_LIT_CHAR:
+                        sprintf(addition, "_%s:\t.long\t%s\n", remover_aspas_do_char(node->text), node->text);
                         break;
                     default:
                         addition = realloc(addition, +1 +2*strlen(hash_table[i]->text) +10);
@@ -591,6 +588,7 @@ void generate_TAC_ARG(FILE* fout, TAC* tac) {
 }
 
 void generate_TAC_AATTR(FILE* fout, TAC* tac) {
+    char temp_buffer[1024];
     fprintf(fout,	
             "# TAC_AATTR\n"
             "\tleaq\t_%s(%%rip), %%rcx\n"
@@ -598,7 +596,8 @@ void generate_TAC_AATTR(FILE* fout, TAC* tac) {
             "\tmovslq\t_%s(%%rip), %%rsi\n"
             "\tmovl\t%%edx, (%%rcx,%%rsi,4)\n", 
             tac->res->text,
-            tac->op2->text, tac->op1->text
+            get_as_assembly_data(tac->op2->text, tac->op2->type, tac->op2->datatype, temp_buffer), 
+            get_as_assembly_data(tac->op1->text, tac->op1->type, tac->op1->datatype, temp_buffer)
     );
 }
 

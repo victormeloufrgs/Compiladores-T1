@@ -25,5 +25,6 @@ float toDeci(char *str, int base, int floating_length);
 char* fromDeci(char res[], int base, int inputNum);
 char* getIEEE(char* buffer, float var);
 char* getBinary(char* buffer, int n, int i);
+char* remover_aspas_do_char(char* char_com_aspas);
 
 #endif
