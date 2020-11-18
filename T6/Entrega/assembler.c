@@ -303,6 +303,18 @@ void generate_TAC_NOT(FILE* fout, TAC* tac) {
     );
 }
 
+void generate_TAC_EQ(FILE* fout, TAC* tac) {
+    fprintf(fout,
+            "\t## TAC_EQ\n"
+            "\tmovl\t_%s(%%rip), %%edx\n"
+            "\tcmpl\t_%s(%%rip), %%edx\n"
+            "\tje\t\t_%s\n", 
+            tac->op1->text, 
+            tac->op2->text,
+            tac->res->text
+    );
+}
+
 
 void generateAsm(TAC* first) {
     TAC* tac;
@@ -331,6 +343,40 @@ void generateAsm(TAC* first) {
             case TAC_AND: generate_TAC_AND(fout, tac); break;
             case TAC_OR: generate_TAC_OR(fout, tac); break;
             case TAC_NOT: generate_TAC_NOT(fout, tac); break;
+            case TAC_EQ: generate_TAC_EQ(fout, tac); break;
+            case TAC_JUMP:  
+                    fprintf(fout,
+                            "\t## TAC_JUMP\n"
+                            "\tjmp\t\t_%s\n",
+                            tac->res->text
+                    ); 
+                    break;
+            case TAC_LABEL:
+                fprintf(fout, 	
+                        "\t## TAC_LABEL\n"
+                        "_%s:\n", 
+                        tac->res->text
+                );
+                break;
+            
+            case TAC_MOVE:
+                fprintf(fout,	
+                        "\t# TAC_MOVE\n"
+                                "\tmovl\t_%s(%%rip), %%eax\n"
+                                "\tmovl\t%%eax, _%s(%%rip)\n",
+                                tac->op1->text, tac->res->text); break;
+                break;
+
+            case TAC_JFALSE:
+                fprintf(fout,	
+                        "\t# TAC_JFALSE\n"
+                        "\tcmpl\t$0, _%s(%%rip)\n"
+                        "\tje\t\t_%s\n", 
+                        tac->op1->text, 
+                        tac->res->text
+                );
+                break;
+
 		    default: fprintf(stderr, "Assembler error: unknown intermediary code.\n"); break;
         }
     }

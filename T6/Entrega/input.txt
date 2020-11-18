@@ -1,5 +1,12 @@
 f = bool : FALSE;
 
 main () = int {
-    print ~~f
+    if (TRUE == TRUE) then {
+        print "IGUAL\n"
+    } else {
+        print "Diferente\n"
+    }
+
+    print "Concluiu\n"
+    print 5.2 + 3.2
 };

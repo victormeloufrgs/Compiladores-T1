@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-bool b = true;
-bool c = true;
+float d = 5.2f;
 
 int main() {
-   c = !b;
+   printf("%f\n", d);
 }
