@@ -11,9 +11,9 @@ _main:
 	.cfi_startproc
 	pushq %rbp
 	movq	%rsp, %rbp
-# TAC_ADD
-	movss	_1.2(%rip), %xmm0
-	addss	_1.2(%rip), %xmm0
+# TAC_MULT
+	movss	_2.5(%rip), %xmm0
+	mulss	_2.5(%rip), %xmm0
 	movss	%xmm0, _1temp_0(%rip)
 # TAC_PRINT_NOT_LIT_FLOAT
 	leaq	printfloatstr(%rip), %rdi
@@ -41,6 +41,6 @@ _mfunction:
 _0:	.long	0
 _1:	.long	1
 _5.2:	.long	1084489728
-_1.2:	.long	1066401792
+_2.5:	.long	1075052544
 _1temp_0:	.long	0
 L_.str.0: .asciz	"\n"

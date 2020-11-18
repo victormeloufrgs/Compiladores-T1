@@ -47,6 +47,21 @@ char* ass_add_for_tac(TAC* tac, char* fst, char* snd) {
     }
 }
 
+char* ass_sub_for_tac(TAC* tac, char* fst, char* snd) {
+    if (is_float(tac->res)) {
+        return concat_string("\tsubss\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    } else {
+        return concat_string("\tsubl\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    }
+}
+
+char* ass_imul_for_tac(TAC* tac, char* fst, char* snd) {
+    if (is_float(tac->res)) {
+        return concat_string("\tmulss\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    } else {
+        return concat_string("\timull\t", concat_string(fst, concat_string(", ", concat_string(snd,"\n"))));
+    }
+}
 
 char* ass_xmm0_or_eax_for_tac(TAC* tac) {
     if (is_float(tac->res)) {
@@ -269,51 +284,7 @@ void generate_TAC_PRINT(FILE* fout, TAC *print, char **data_section) {
 	free(addition);
 
     fprintf(fout, "%s", assembly);
-
-
-    // if(is_float(tac->res)) {
-    //     generate_TAC_PRINT_FLOAT(fout, tac);
-
-    // } else if (is_string(tac->res)) {
-    //     generate_TAC_PRINT_STR(fout, tac);
-
-    // } else {
-    //     generate_TAC_PRINT_INT(fout, tac);
-    // }
 }
-
-// void generate_TAC_PRINT_STR(FILE* fout, TAC* tac) {
-//     fprintf(fout,
-//             "# TAC_PRINT_STRING\n"
-//             "\tleaq	_string_%d(%%rip), %%rdi\n"
-//             "\tmovb	$0, %%al\n"
-//             "\tcallq	_printf\n", 
-//             tac->res ? hashFind(tac->res->text)->id : 0
-//     );
-// }
-
-// void generate_TAC_PRINT_FLOAT(FILE* fout, TAC* tac) {
-//     fprintf(fout,
-//             "# TAC_PRINT_FLOAT\n"
-//             "\tleaq	printfloatstr(%%rip), %%rdi\n"
-//             "\tmovl	_%s(%%rip), %%esi\n"
-//             "\tmovb	$1, %%al\n"
-//             "\tcallq	_printf\n", 
-//             tac->res ? tac->res->text : 0
-//     );
-// }
-
-// void generate_TAC_PRINT_INT(FILE* fout, TAC* tac) {
-//     fprintf(fout,
-//             "# TAC_PRINT_INT\n"
-//             "\tleaq	printintstr(%%rip), %%rdi\n"
-//             "\tmovl	_%s(%%rip), %%esi\n"
-//             "\tmovb	$0, %%al\n"
-//             "\tcallq	_printf\n", 
-//             tac->res ? tac->res->text : 0
-//     );
-// }
-
 
 char* generate_TAC_VAR(char* data_section, TAC* tac) {
     char* addition = (char *) malloc(+1 +2*strlen(tac->res->text) +256);
@@ -362,51 +333,51 @@ char* generate_TAC_ARR(char* data_section, TAC* tac) {
     return str;
 }
 
-void generate_TAC_ADD(FILE* fout, TAC* tac) { 
+void generate_TAC_ADD(FILE* fout, TAC* tac) {
+    fprintf(fout, 
+            "# TAC_ADD\n"
+            "%s"
+            "%s"
+            "%s",
+            ass_mov_for_tac(tac, ass_key_for(tac->op1->text), ass_xmm0_or_eax_for_tac(tac)),
+            ass_add_for_tac(tac, ass_key_for(tac->op2->text), ass_xmm0_or_eax_for_tac(tac)),
+            ass_mov_for_tac(tac, ass_xmm0_or_eax_for_tac(tac), ass_key_for(tac->res->text))
+    );
+}
+
+void generate_TAC_SUB(FILE* fout, TAC* tac) { 
+    fprintf(fout, 
+            "# TAC_SUB\n"
+            "%s"
+            "%s"
+            "%s",
+            ass_mov_for_tac(tac, ass_key_for(tac->op1->text), ass_xmm0_or_eax_for_tac(tac)),
+            ass_sub_for_tac(tac, ass_key_for(tac->op2->text), ass_xmm0_or_eax_for_tac(tac)),
+            ass_mov_for_tac(tac, ass_xmm0_or_eax_for_tac(tac), ass_key_for(tac->res->text))
+    );
+}
+
+
+void generate_TAC_MULT(FILE* fout, TAC* tac) { 
         // fprintf(fout, 
-        //         "# TAC_ADD\n"
+        //         "# TAC_MUL\n"
         //         "\tmovl\t_%s(%%rip), %%eax\n"
-        //         "\taddl\t_%s(%%rip), %%eax\n"
+        //         "\timull\t_%s(%%rip), %%eax\n"
         //         "\tmovl\t%%eax, _%s(%%rip)\n",
         //         tac->op1->text, 
         //         tac->op2->text,
         //         tac->res->text
         // );
 
-        fprintf(fout, 
-                "# TAC_ADD\n"
-                "%s"
-                "%s"
-                "%s",
-                ass_mov_for_tac(tac, ass_key_for(tac->op1->text), ass_xmm0_or_eax_for_tac(tac)),
-                ass_add_for_tac(tac, ass_key_for(tac->op2->text), ass_xmm0_or_eax_for_tac(tac)),
-                ass_mov_for_tac(tac, ass_xmm0_or_eax_for_tac(tac), ass_key_for(tac->res->text))
-        );
-}
-
-void generate_TAC_SUB(FILE* fout, TAC* tac) { 
-        fprintf(fout, 
-                "# TAC_SUB\n"
-                "\tmovl\t_%s(%%rip), %%eax\n"
-                "\tsubl\t_%s(%%rip), %%eax\n"
-                "\tmovl\t%%eax, _%s(%%rip)\n",
-                tac->op1->text, 
-                tac->op2->text,
-                tac->res->text
-        );
-}
-
-
-void generate_TAC_MULT(FILE* fout, TAC* tac) { 
-        fprintf(fout, 
-                "# TAC_MUL\n"
-                "\tmovl\t_%s(%%rip), %%eax\n"
-                "\timull\t_%s(%%rip), %%eax\n"
-                "\tmovl\t%%eax, _%s(%%rip)\n",
-                tac->op1->text, 
-                tac->op2->text,
-                tac->res->text
-        );
+    fprintf(fout, 
+        "# TAC_MULT\n"
+        "%s"
+        "%s"
+        "%s",
+        ass_mov_for_tac(tac, ass_key_for(tac->op1->text), ass_xmm0_or_eax_for_tac(tac)),
+        ass_imul_for_tac(tac, ass_key_for(tac->op2->text), ass_xmm0_or_eax_for_tac(tac)),
+        ass_mov_for_tac(tac, ass_xmm0_or_eax_for_tac(tac), ass_key_for(tac->res->text))
+    );
 }
 
 bool is_float(HASH_NODE* hash_node) {
