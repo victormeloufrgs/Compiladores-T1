@@ -40,6 +40,7 @@
 #define TAC_FEND                    29
 #define TAC_VAR                     30
 #define TAC_ARR                     31
+#define TAC_PRARG                   32
 
 
 typedef struct tac_node {
@@ -59,5 +60,6 @@ TAC* tacJoin(TAC* l1, TAC* l2);
 // CODE GENERATION
 
 TAC* generateCode(AST* node);
+void fillFuncCalls(TAC* code);
 
 #endif

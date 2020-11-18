@@ -1,7 +1,10 @@
+d = int: 0;
+
 main () = int {
-    print 2.5 * 2.5
+    print mfunction(2, 3)
+    return 1
 };
 
-mfunction () = float {
-    return 5.2
+mfunction (a = int, b = int) = int {
+    return a + 4
 };

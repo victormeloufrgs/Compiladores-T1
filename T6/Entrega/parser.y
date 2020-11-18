@@ -103,6 +103,7 @@ program: declaration_list                           {
                                                       check_undeclared();
                                                       check_operands($1);
                                                       code = generateCode($1);
+                                                      fillFuncCalls(code);
                                                       tacPrintBackwards(code);
                                                       code = tacReverse(code);
                                                       generateAsm(code);

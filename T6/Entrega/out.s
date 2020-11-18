@@ -11,15 +11,20 @@ _main:
 	.cfi_startproc
 	pushq %rbp
 	movq	%rsp, %rbp
-# TAC_MULT
-	movss	_2.5(%rip), %xmm0
-	mulss	_2.5(%rip), %xmm0
-	movss	%xmm0, _1temp_0(%rip)
-# TAC_PRINT_NOT_LIT_FLOAT
-	leaq	printfloatstr(%rip), %rdi
-	cvtss2sd	%xmm0, %xmm0
-	movb	$1, %al
+# TAC_ARG
+	movl	_2(%rip), %eax
+	movl	%eax, _b(%rip)
+# TAC_ARG
+	movl	_3(%rip), %eax
+	movl	%eax, _a(%rip)
+# TAC_FCALL
+	callq	_mfunction
+# TAC_PRINT
+	movl	_1temp_0(%rip), %esi
+	leaq	L_.str.0(%rip), %rdi
 	callq	_printf
+# TAC_RET
+	movl	_1(%rip), %eax
 # TAC_FEND
 	popq	%rbp
 	retq
@@ -29,8 +34,12 @@ _mfunction:
 	.cfi_startproc
 	pushq %rbp
 	movq	%rsp, %rbp
+# TAC_ADD
+	movl	_a(%rip), %eax
+	addl	_4(%rip), %eax
+	movl	%eax, _1temp_0(%rip)
 # TAC_RET
-	movss	_5.2(%rip), %xmm0
+	movl	_1temp_0(%rip), %eax
 # TAC_FEND
 	popq	%rbp
 	retq
@@ -38,9 +47,13 @@ _mfunction:
 # DATA SECTION
 	.section	__DATA,__data
 
+_4:	.long	4
+_3:	.long	3
+_2:	.long	2
 _0:	.long	0
 _1:	.long	1
-_5.2:	.long	1084489728
-_2.5:	.long	1075052544
 _1temp_0:	.long	0
-L_.str.0: .asciz	"\n"
+_d:	.long	0
+L_.str.0: .asciz	"%d\n"
+_a: .long	0
+_b: .long	0

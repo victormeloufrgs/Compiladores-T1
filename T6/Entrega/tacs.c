@@ -11,6 +11,7 @@ TAC* makeArrayCall(AST* node, TAC* code0);
 TAC* makeFunctionCall(AST* node, TAC* code0);
 TAC* makeFunctionCallArgs(AST* node, TAC* code0, TAC* code1);
 TAC* makePrint(AST* node, TAC* code0, TAC* code1);
+TAC* makePrintArg(AST* node, TAC* code0, TAC* code1);
 TAC* makeAttrArray(AST* node, TAC* code0, TAC* code1);
 TAC* makeReturn(AST* node, TAC* code0);
 TAC* makeRead(AST* node);
@@ -66,6 +67,7 @@ void tacPrint(TAC* tac) {
         case TAC_FCALL  : fprintf(stderr,"TAC_FCALL"); break;
         case TAC_ARG  : fprintf(stderr,"TAC_ARG"); break;
         case TAC_PRINT  : fprintf(stderr,"TAC_PRINT"); break;
+        case TAC_PRARG  : fprintf(stderr,"TAC_PRARG"); break;
         case TAC_JEQ    : fprintf(stderr,"TAC_JEQ"); break;
 
         case TAC_AATTR  : fprintf(stderr,"TAC_AATTR"); break;
@@ -99,6 +101,7 @@ TAC* tacJoin(TAC* l1, TAC* l2) {
     for(point = l2; point->prev != 0; point = point->prev)
         ;
     point->prev = l1;
+    l1->next = point;
     return l2;
 }
 
@@ -158,8 +161,8 @@ TAC* generateCode(AST* node) {
 
         // COMMAND
 
-        case AST_PRINT_LIST:
-        case AST_PRINT_EXTRA_ELEMS:     result = makePrint(node, code[0], code[1]); break;           
+        case AST_PRINT:                 result = makePrint(node, code[0], code[1]); break;
+        case AST_PRINT_LIST:            result = makePrintArg(node, code[0], code[1]); break;
         case AST_ATTR_ARRAY:            result = makeAttrArray(node, code[0], code[1]); break;
         case AST_ATTR:                  result = tacJoin(code[0], tacCreate(TAC_MOVE, node->symbol, getResFrom(code[0]), 0)); break;
         case AST_RETURN:                result = makeReturn(node, code[0]); break;
@@ -247,7 +250,7 @@ TAC* makeArrayCall(AST* node, TAC* code0) {
 
 TAC* makeFunctionCall(AST* node, TAC* code0) {
     if(!node) return code0;
-    return tacJoin(tacCreate(TAC_FCALL, node->symbol, node->symbol, 0), code0);
+    return tacJoin(code0, tacCreate(TAC_FCALL, node->symbol, node->symbol, 0));
 }
 
 TAC* makeFunctionCallArgs(AST* node, TAC* code0, TAC* code1) {
@@ -259,8 +262,33 @@ TAC* makeFunctionCallArgs(AST* node, TAC* code0, TAC* code1) {
 
 
 TAC* makePrint(AST* node, TAC* code0, TAC* code1) {
-    TAC* print = tacCreate(TAC_PRINT, code0 ? code0->res : 0, 0, 0);
-    return tacJoin(code0, code1 ? tacJoin(print, code1) : print);
+    TAC* print = tacCreate(TAC_PRINT, NULL, NULL, NULL);
+    TAC* list = print;
+
+    if(node->son[0]->type != AST_PRINT_LIST)
+        list = tacJoin(tacCreate(TAC_PRARG, code0->res, NULL, NULL), list);
+
+    return tacJoin(code0, list);
+}
+
+
+TAC* makePrintArg(AST* node, TAC* code0, TAC* code1) {
+	TAC* prags;
+	if(node->son[1] && node->son[1]->type == AST_PRINT_EXTRA_ELEMS) {
+		prags = tacCreate(TAC_PRARG, code0->res, NULL, NULL);
+		prags = tacJoin(tacCreate(TAC_PRARG, code1->res, NULL, NULL), prags);
+
+	} else {
+//        TAC* to_print = code0;
+
+        // for(to_print = code0; to_print->type == TAC_ARG; to_print = to_print->prev)
+        //     if(to_print->type == TAC_ARG)
+        //         for(to_print = to_print; to_print->prev && to_print->prev->type == TAC_SYMBOL; to_print = to_print->prev);
+
+		prags = tacCreate(TAC_PRARG, code0->res, NULL, NULL);
+	}
+
+	return code1 ? tacJoin(code0, tacJoin(code1, prags)) : tacJoin(code0, prags);
 }
 
 TAC* makeAttrArray(AST* node, TAC* code0, TAC* code1) {
@@ -453,4 +481,46 @@ TAC* makeVarSymbDecl(AST* node, TAC* code0, TAC* code1) {
 HASH_NODE *getResFrom(TAC *code) {
     if(!code) return 0;
     return code->res;
+}
+
+void fillFuncCalls(TAC* code) {
+	
+	TAC *call;
+	for(call = code; call; call = call->prev) {
+		if(call->type == TAC_FCALL) {
+			TAC *dec, *ret;
+
+            //busca a declaração da função
+			for(dec = code; !(dec->type == TAC_FBEGIN && strcmp(call->op1->text, dec->res->text) == 0); dec = dec->prev) { }
+
+            //busca o primeiro retorno da função após a declaração dec.
+            for(ret = dec; ret->type != TAC_RET; ret = ret->next);
+
+            call->res = ret->res;
+
+			TAC *tac;
+			for(tac = code; tac; tac = tac->prev) {
+				if(tac->type != TAC_FBEGIN && tac->type != TAC_FCALL) {
+					if(tac->res && strcmp(tac->res->text, call->op1->text) == 0)
+						tac->res = ret->res;
+					else if(tac->op1 && strcmp(tac->op1->text, call->op1->text) == 0)
+						tac->op1 = ret->res;
+					else if(tac->op2 && strcmp(tac->op2->text, call->op1->text) == 0)
+						tac->op2 = ret->res;
+				}
+			}
+
+            if(!tac)
+                for(tac = code; tac; tac = tac->prev) {
+                    if(tac->type != TAC_FBEGIN && tac->type != TAC_FCALL) {
+                        if(tac->res && strcmp(tac->res->text, call->op1->text) == 0)
+                            tac->res = ret->res;
+                        else if(tac->op1 && strcmp(tac->op1->text, call->op1->text) == 0)
+                            tac->op1 = ret->res;
+                        else if(tac->op2 && strcmp(tac->op2->text, call->op1->text) == 0)
+                            tac->op2 = ret->res;
+                    }
+                }
+		}
+	}
 }
