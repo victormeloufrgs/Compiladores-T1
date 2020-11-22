@@ -1,13 +1,11 @@
-/*
 var_10 = int: A;
 var_14 = int: E;
 var_2 = int: 2;
 
-
 main () = int {
     print "\nOperações aritméticas:\n"
 
-    printt var_14 + var_10
+    print var_14 + var_10
     print var_14 - var_10
     print var_14 * var_2
     print var_14 / var_2 
@@ -23,22 +21,11 @@ main () = int {
 
     print "\n Operações relacionais com números: \n"
     print 25 >>= 3
-    print 25 > 3
+    print 25 >> 3
     print 25 <= 3
     print 25 < 3
     print 25 == 3
     print 25 != 3
     print 25 == 25
     print 25 != 25
-};
-*/
-
-main () = int {
-    print "\nOperações aritméticas:\n"
-
-    printt var_14 + var_10
-    print var_14 -- var_10
-    print var_14
-    print var_14 -- var_10
-
 };

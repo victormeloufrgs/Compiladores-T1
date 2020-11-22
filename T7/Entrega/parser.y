@@ -86,7 +86,7 @@ Matrícula:  00285640
 %type<ast> type_and_value
 %type<ast> declaration
 %type<ast> declaration_list
-%type <astree> panic_mode
+%type <ast> panic_mode
 
 %left OPERATOR_OR OPERATOR_AND
 %left OPERATOR_LE OPERATOR_LT OPERATOR_GE OPERATOR_GT OPERATOR_EQ OPERATOR_DIF OPERATOR_NOT
@@ -108,7 +108,7 @@ declaration: TK_IDENTIFIER '=' type_and_value ';'                       { $$ = a
 
 panic_mode: error ';' { syntax_errors++; }
     | error command_seq panic_mode { syntax_errors++; yyerrok;}
-    | error command_seq '}' { syntax_errors++; yyerrok;}
+    | error command_seq '}' { $$ = $2; syntax_errors++; yyerrok;}
     
 type_and_value: type ':' lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
     | type '[' expr ']' vet_maybe_value                          { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, 0, $1, $3, $5, 0); }
