@@ -104,11 +104,10 @@ declaration_list: declaration declaration_list          { $$ = astCreate(AST_DEC
 
 declaration: TK_IDENTIFIER '=' type_and_value ';'                       { $$ = astCreate(AST_DECL_VAR, $1, $3, 0, 0, 0); }
     | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block ';'     { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); }
-    | panic_mode                                                        { $$ = 0; yyerrok; fprintf(stderr, "Panic Mode!\n"); }
+    | panic_mode                                                        { fprintf(stderr, "Panic Mode!\n"); }
 
-panic_mode: error ';' { syntax_errors++; }
-    | error command_seq panic_mode { syntax_errors++; yyerrok;}
-    | error command_seq '}' { $$ = $2; syntax_errors++; yyerrok;}
+panic_mode: error ';'                   { yyerrok; syntax_errors++;}
+    | error command_seq '}'             { yyerrok; syntax_errors++;}
     
 type_and_value: type ':' lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
     | type '[' expr ']' vet_maybe_value                          { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, 0, $1, $3, $5, 0); }
@@ -154,7 +153,7 @@ command_block: '{' command_seq '}'              { $$ = astCreate(AST_CMD_BLOCK, 
     ;
 
 command_seq: command_seq command                { $$ = astCreate(AST_CMD_SEQ, 0, $1, $2, 0, 0); }
-    | panic_mode command_seq                    { fprintf(stderr, "Panic Mode!\n"); }
+    | command_seq panic_mode                    { fprintf(stderr, "Panic mode!\n"); }
     |                                           { $$ = 0; }
     ;
 

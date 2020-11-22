@@ -20,8 +20,8 @@ main () = int {
     print ~FALSE
 
     print "\n Operações relacionais com números: \n"
-    print 25 >>= 3
-    print 25 >> 3
+    print 25 >= 3
+    print 25 > 3
     print 25 <= 3
     print 25 < 3
     print 25 == 3
