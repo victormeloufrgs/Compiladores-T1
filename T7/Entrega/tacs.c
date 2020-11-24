@@ -71,19 +71,19 @@ void tacPrint(TAC* tac) {
         case TAC_JUMP   : fprintf(stderr, "TAC_JUMP"); break;
         case TAC_ACALL  : fprintf(stderr,"TAC_ACALL"); break;
         case TAC_FCALL  : fprintf(stderr,"TAC_FCALL"); break;
-        case TAC_ARG  : fprintf(stderr,"TAC_ARG"); break;
+        case TAC_ARG    : fprintf(stderr,"TAC_ARG"); break;
         case TAC_PRINT  : fprintf(stderr,"TAC_PRINT"); break;
         case TAC_PRARG  : fprintf(stderr,"TAC_PRARG"); break;
         case TAC_JEQ    : fprintf(stderr,"TAC_JEQ"); break;
 
         case TAC_AATTR  : fprintf(stderr,"TAC_AATTR"); break;
-        case TAC_RET  : fprintf(stderr,"TAC_RET"); break;
-        case TAC_READ  : fprintf(stderr,"TAC_READ"); break;
+        case TAC_RET    : fprintf(stderr,"TAC_RET"); break;
+        case TAC_READ   : fprintf(stderr,"TAC_READ"); break;
         case TAC_PARAM  : fprintf(stderr,"TAC_PARAM"); break;
-        case TAC_FBEGIN  : fprintf(stderr,"TAC_FBEGIN"); break;
-        case TAC_FEND  : fprintf(stderr,"TAC_FEND"); break;
-        case TAC_VAR  : fprintf(stderr,"TAC_VAR"); break;
-        case TAC_ARR  : fprintf(stderr,"TAC_ARR"); break;
+        case TAC_FBEGIN : fprintf(stderr,"TAC_FBEGIN"); break;
+        case TAC_FEND   : fprintf(stderr,"TAC_FEND"); break;
+        case TAC_VAR    : fprintf(stderr,"TAC_VAR"); break;
+        case TAC_ARR    : fprintf(stderr,"TAC_ARR"); break;
         default         : fprintf(stderr, "TAC_UNKNOWN"); break;
     }
 

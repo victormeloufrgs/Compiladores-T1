@@ -1,31 +1,9 @@
 var_10 = int: A;
-var_14 = int: E;
+var_14 = int E;
+i = int: 1;
 var_2 = int: 2;
 
 main () = int {
-    print "\nOperações aritméticas:\n"
-
-    print var_14 + var_10
-    print var_14 - var_10
-    print var_14 * var_2
-    print var_14 / var_2 
-    
-    print "\nOperações booleanas: \n"
-    
-    print TRUE ^ TRUE
-    print TRUE ^ FALSE
-    print TRUE | FALSE
-    print FALSE | FALSE
-    print ~TRUE
-    print ~FALSE
-
-    print "\n Operações relacionais com números: \n"
-    print 25 >= 3
-    print 25 > 3
-    print 25 <= 3
-    print 25 < 3
-    print 25 == 3
-    print 25 != 3
-    print 25 == 25
-    print 25 != 25
+    print var_2 -- 2
+    printt "V"
 };

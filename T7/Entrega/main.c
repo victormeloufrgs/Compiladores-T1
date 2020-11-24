@@ -51,7 +51,7 @@ int main(int argc, char ** argv) {
     // VERIFICAÇÃO SINTÁTICA
     
     yyparse();
-    astPrint(tree, 0);
+    // astPrint(tree, 0);
 
     // VERIFICAÇÃO SEMÂNTICA
 

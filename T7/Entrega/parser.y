@@ -103,13 +103,15 @@ declaration_list: declaration declaration_list          { $$ = astCreate(AST_DEC
     ;
 
 declaration: TK_IDENTIFIER '=' type_and_value ';'                       { $$ = astCreate(AST_DECL_VAR, $1, $3, 0, 0, 0); }
+    | TK_IDENTIFIER '=' type_and_value error                            { $$ = astCreate(AST_DECL_VAR, $1, $3, 0, 0, 0); yyerrok; syntax_errors++;  fprintf(stderr, "Missing ';'\n");}
+    | TK_IDENTIFIER '=' error                                           { $$ = 0; yyerrok; syntax_errors++;  fprintf(stderr, "Wrong assignment!\n");}
     | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block ';'     { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); }
-    | panic_mode                                                        { fprintf(stderr, "Panic Mode!\n"); }
+    | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block error   { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); yyerrok; syntax_errors++;  fprintf(stderr, "Missing ';'\n");}
+    | TK_IDENTIFIER '(' error                                           { $$ = 0; yyerrok; syntax_errors++;  fprintf(stderr, "Wrong assignment!\n");}
+    ;
 
-panic_mode: error ';'                   { yyerrok; syntax_errors++;}
-    | error command_seq '}'             { yyerrok; syntax_errors++;}
-    
 type_and_value: type ':' lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
+    | type error lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); yyerrok; syntax_errors++;  fprintf(stderr, "Wrong type and value (missing ':')!\n");}
     | type '[' expr ']' vet_maybe_value                          { $$ = astCreate(AST_TYPE_AND_VALUE_ARRAY, 0, $1, $3, $5, 0); }
     ;
 
@@ -153,7 +155,6 @@ command_block: '{' command_seq '}'              { $$ = astCreate(AST_CMD_BLOCK, 
     ;
 
 command_seq: command_seq command                { $$ = astCreate(AST_CMD_SEQ, 0, $1, $2, 0, 0); }
-    | command_seq panic_mode                    { fprintf(stderr, "Panic mode!\n"); }
     |                                           { $$ = 0; }
     ;
 
@@ -184,6 +185,9 @@ print_elem: LIT_STRING                                  { $$ = astCreate(AST_SYM
 command_control: KW_IF '(' expr ')' KW_THEN command maybe_else              { $$ = astCreate(AST_IF_THEN, 0, $3, $6, $7, 0); }
     | KW_WHILE '(' expr ')' command                                         { $$ = astCreate(AST_WHILE, 0, $3, $5, 0, 0); }
     | KW_LOOP '(' TK_IDENTIFIER ':' expr ',' expr ',' expr ')' command      { $$ = astCreate(AST_LOOP, $3, $5, $7, $9, $11); }
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr error expr ',' expr ')' command    { $$ = astCreate(AST_LOOP, $3, $5, $7, $9, $11); yyerrok; syntax_errors++; fprintf(stderr, "Missing first ',' in LOOP !\n");}
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr ',' expr error expr ')' command    { $$ = astCreate(AST_LOOP, $3, $5, $7, $9, $11); yyerrok; syntax_errors++; fprintf(stderr, "Missing second ',' in LOOP !\n");}
+    | KW_LOOP '(' TK_IDENTIFIER ':' expr error expr error expr ')' command  { $$ = astCreate(AST_LOOP, $3, $5, $7, $9, $11); yyerrok; syntax_errors++; fprintf(stderr, "Missing both ',' in LOOP !\n");}
     ;
 
 maybe_else: KW_ELSE command                             { $$ = astCreate(AST_MAYBE_ELSE, 0, $2, 0, 0, 0); }
@@ -211,6 +215,7 @@ bin_expr: expr OPERATOR_PLUS expr                   { $$ = astCreate(AST_PLUS, 0
     | expr OPERATOR_DIF expr                        { $$ = astCreate(AST_DIF, 0, $1, $3, 0, 0); }
     | expr OPERATOR_OR expr                         { $$ = astCreate(AST_OR, 0, $1, $3, 0, 0); }
     | expr OPERATOR_AND expr                        { $$ = astCreate(AST_AND, 0, $1, $3, 0, 0); }
+    | expr error expr                               { $$ = 0; yyerrok; syntax_errors++; fprintf(stderr, "Invalid binary operation!\n");}
     ;
 
 
