@@ -1,5 +1,5 @@
 var_10 = int: A;
-var_14 = int E;
+var_14 = int: E
 i = int: 1;
 var_2 = int: 2;
 

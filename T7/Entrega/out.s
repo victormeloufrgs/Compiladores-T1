@@ -11,31 +11,18 @@ _main:
 	.cfi_startproc
 	pushq %rbp
 	movq	%rsp, %rbp
-# TAC_MOVE
-	movl	_1(%rip), %eax
+# TAC_SUB
+	movl	_var_2(%rip), %eax
+	subl	_2(%rip), %eax
 	movl	%eax, _1temp_0(%rip)
-# TAC_LABEL
-_1label_0:
-# TAC_JEQ
-	movl	_1temp_0(%rip), %edx
-	cmpl	_3(%rip), %edx
-	je		_1label_1
-# TAC_LE
-	movl	_1temp_0(%rip), %edx
-	cmpl	_3(%rip), %edx
-	jle		_1label_1
 # TAC_PRINT
-	movl	_1(%rip), %esi
+	movl	_1temp_0(%rip), %esi
 	leaq	L_.str.0(%rip), %rdi
 	callq	_printf
-# TAC_ADD
-	movl	_1temp_0(%rip), %eax
-	addl	_10(%rip), %eax
-	movl	%eax, _1temp_0(%rip)
-# TAC_JUMP
-	jmp		_1label_0
-# TAC_LABEL
-_1label_1:
+# TAC_PRINT
+	leaq	_string_10(%rip), %rsi
+	leaq	L_.str.1(%rip), %rdi
+	callq	_printf
 # TAC_FEND
 	popq	%rbp
 	retq
@@ -43,16 +30,16 @@ _1label_1:
 # DATA SECTION
 	.section	__DATA,__data
 
-_3:	.long	3
 _2:	.long	2
 _E:	.long	14
 _A:	.long	10
 _0:	.long	0
 _1:	.long	1
-_10:	.long	16
+_string_10: .asciz	"V"
 _1temp_0:	.long	0
 _var_10:	.long	10
 _var_14:	.long	14
-_var_2:	.long	2
 _i:	.long	1
+_var_2:	.long	2
 L_.str.0: .asciz	"%d\n"
+L_.str.1: .asciz	"%s\n"

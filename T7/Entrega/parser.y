@@ -86,7 +86,6 @@ Matrícula:  00285640
 %type<ast> type_and_value
 %type<ast> declaration
 %type<ast> declaration_list
-%type <ast> panic_mode
 
 %left OPERATOR_OR OPERATOR_AND
 %left OPERATOR_LE OPERATOR_LT OPERATOR_GE OPERATOR_GT OPERATOR_EQ OPERATOR_DIF OPERATOR_NOT
@@ -107,7 +106,8 @@ declaration: TK_IDENTIFIER '=' type_and_value ';'                       { $$ = a
     | TK_IDENTIFIER '=' error                                           { $$ = 0; yyerrok; syntax_errors++;  fprintf(stderr, "Wrong assignment!\n");}
     | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block ';'     { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); }
     | TK_IDENTIFIER '(' maybe_params ')' '=' type command_block error   { $$ = astCreate(AST_DECL_FUNC, $1, $3, $6, $7, 0); yyerrok; syntax_errors++;  fprintf(stderr, "Missing ';'\n");}
-    | TK_IDENTIFIER '(' error                                           { $$ = 0; yyerrok; syntax_errors++;  fprintf(stderr, "Wrong assignment!\n");}
+    | TK_IDENTIFIER error command_block ';'                             { $$ = 0; yyerrok; syntax_errors++;  fprintf(stderr, "Wrong declaration\n");}
+    | TK_IDENTIFIER error ';'                                            { $$ = 0; yyerrok; syntax_errors++;  fprintf(stderr, "Wrong declaration\n");}
     ;
 
 type_and_value: type ':' lit                                            { $$ = astCreate(AST_TYPE_AND_VALUE, 0, $1, $3, 0, 0); }
