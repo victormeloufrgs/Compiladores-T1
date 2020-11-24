@@ -71,7 +71,6 @@ int main(int argc, char ** argv) {
         exit(SEMANTIC_ERROR);
     }
 
-
     // GERAÇÃO DE CÓDIGO INTERMEDIÁRIO
 
     TAC* code = generateCode(tree);
